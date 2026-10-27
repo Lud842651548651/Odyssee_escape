@@ -850,6 +850,137 @@ form.envoi input {
   gap: .5rem;
   flex-wrap: wrap;
 }
+
+/* =========================================================
+   CARNET DE BORD EN PDF (résultats + rappels de cours)
+   Tailles en px : le PDF ne dépend pas du bouton A− / A+
+   ========================================================= */
+.carnet {
+  width: 760px;
+  padding: 0 6px 10px;
+  background: #f4e7c9;
+  color: var(--encre);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.carnet .frise {
+  height: 18px;
+  margin-bottom: 14px;
+}
+.carnet .c-titre {
+  font-family: var(--titre);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--terre2);
+  text-align: center;
+  letter-spacing: .06em;
+}
+.carnet .c-sous {
+  text-align: center;
+  font-style: italic;
+  color: var(--encre2);
+  font-size: 15px;
+}
+.carnet .c-eleve {
+  margin: 12px 0 6px;
+  border: 2px solid var(--encre2);
+  border-radius: 6px;
+  background: #fffaf0;
+  padding: 8px 12px;
+  text-align: center;
+  font-size: 15px;
+}
+.carnet h2 {
+  font-family: var(--titre);
+  color: var(--terre2);
+  font-size: 21px;
+  border-bottom: 2px solid var(--or);
+  padding-bottom: 3px;
+  margin: 18px 0 8px;
+}
+.carnet h3 {
+  font-family: var(--titre);
+  color: var(--terre2);
+  font-size: 18px;
+  margin: 16px 0 2px;
+  display: flex;
+  align-items: center;
+}
+.carnet .c-num {
+  display: inline-block;
+  min-width: 40px;
+  padding: 1px 6px;
+  margin-right: 10px;
+  color: #fff8e8;
+  background: var(--terre);
+  border: 2px solid var(--terre2);
+  border-radius: 4px;
+  text-align: center;
+}
+.carnet .c-escale {
+  font-style: italic;
+  color: var(--encre2);
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+.carnet .cours h4 {
+  font-size: 15px;
+  margin: 10px 0 3px;
+}
+.carnet .cours p,
+.carnet .cours ul,
+.carnet .cours ol {
+  margin: 4px 0;
+}
+.carnet .cours .formule {
+  font-size: 16px;
+  margin: 6px 40px;
+}
+.carnet .cours .exemple {
+  margin: 6px 0;
+}
+.carnet .resgrid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 8px 0;
+}
+.carnet .resgrid div {
+  padding: 6px;
+  font-size: 13px;
+}
+.carnet .resgrid b {
+  font-size: 19px;
+}
+.carnet .tableau {
+  width: 100%;
+  font-size: 13px;
+}
+.carnet .memo-f {
+  font-size: 16px;
+  margin: 6px 40px;
+}
+.carnet .c-verdict {
+  text-align: center;
+  font-style: italic;
+  margin: 4px 0;
+}
+.carnet details summary {
+  display: none;
+}
+
+/* Secours si le PDF ne peut pas être créé : impression du carnet */
+#impression {
+  display: none;
+}
+@media print {
+  body.impression > *:not(#impression) {
+    display: none !important;
+  }
+  body.impression #impression {
+    display: block;
+  }
+}
 </style>
 </head>
 
@@ -958,10 +1089,11 @@ form.envoi input {
       <h3>Règles du voyage</h3>
       <ul class="regles">
         <li>Les escales se débloquent <b>une à une</b> (3 à 5 énigmes par escale).</li>
+        <li>Chaque escale réussie donne une lettre du mot secret, <b>dans le désordre</b> : à toi de les remettre en ordre à la fin !</li>
         <li>Une énigme réussie du premier coup rapporte <b>100 points</b>.</li>
         <li>Si tu te trompes, la correction s'affiche et tu dois réussir une <b>nouvelle énigme</b> du même type
             (60 points, puis 30 points pour la troisième version).</li>
-        <li>Chaque coup de pouce d'Athéna coûte 10 points.</li>
+        <li>Le premier coup de pouce d'Athéna coûte 10 points, le second 30 points de plus (40 en tout).</li>
         <li>Le bouton <b>📖 Rappel de cours</b> te réexplique la notion de l'escale à tout moment.</li>
         <li>Ta progression est sauvegardée sur cet appareil.</li>
       </ul>
@@ -1173,7 +1305,7 @@ form.envoi input {
       tant d'imposteurs ont voulu prendre la place de son époux !
       « Si tu es vraiment Ulysse, dis-moi le mot secret que les dieux t'ont confié au fil de ton voyage. »
     </p>
-    <p>Voici les lettres gagnées, dans le désordre :</p>
+    <p>Voici les lettres gagnées au fil du voyage, dans le désordre :</p>
     <div class="tuiles" id="tuiles"></div>
 
     <label for="code" style="font-weight:700">Le mot secret :</label><br>
@@ -1220,6 +1352,15 @@ form.envoi input {
     </form>
     <div id="envoiFb" aria-live="polite" style="margin-top:.7rem"></div>
 
+    <h3>📄 Mon carnet de bord</h3>
+    <p>
+      Quand tu envoies tes résultats, ton <b>carnet de bord</b> se télécharge automatiquement en PDF :
+      ton bilan et tous les rappels de cours du voyage (I à VIII), avec le mémo des formules.
+      Garde-le pour réviser !
+    </p>
+    <button class="btn ghost" id="bCarnet">📄 Télécharger à nouveau mon carnet de bord</button>
+    <div id="pdfFb" aria-live="polite" style="margin-top:.7rem"></div>
+
     <p class="centre" style="margin-top:1.2rem">
       <button class="btn ghost" id="bRejouer">Recommencer un voyage</button>
     </p>
@@ -1227,6 +1368,9 @@ form.envoi input {
 </section>
 
 </main>
+
+<!-- Carnet à imprimer (secours si le PDF ne peut pas être créé) -->
+<div id="impression"></div>
 
 <!-- Fenêtre affichée aux escales intermédiaires (cap Malée, Lestrygons…) -->
 <div id="escaleModal" role="dialog" aria-modal="true" aria-labelledby="escTitre">
@@ -1260,13 +1404,15 @@ form.envoi input {
 // =====================================================================
 const WORKER_URL = 'https://resultatpolenord.lud-tek.workers.dev/';
 const JEU = 'odyssee_solutions';      // => fichier resultats_odyssee_solutions.txt
-const STORE = 'odyssee_solutions_v2'; // nom de la sauvegarde dans le navigateur
+const STORE = 'odyssee_solutions_v4'; // nom de la sauvegarde dans le navigateur
 const CODE = 'PENELOPE';              // mot secret final (une lettre par épreuve)
 const MS_PAR_AN = 2 * 60 * 1000;      // 2 minutes réelles = 1 année de voyage
 const ANS_MAX = 20;                   // Pénélope attend 20 ans
 const VERSIONS_MAX = 3;               // nombre de versions d'une même énigme
 const POINTS = { 1: 100, 2: 60, 3: 30 }; // points selon la version réussie
-const DEBUG = false;                   // false = plus de messages dans la console
+const COUT_INDICE = [10, 30];         // 1er coup de pouce −10, 2e coup de pouce −30 (total −40)
+const ENIGMES_MAX = 4;                // nombre d'énigmes tirées par épreuve (sauf si l'épreuve a son propre « nb »)
+const DEBUG = true;                   // false = plus de messages dans la console
 
 // Messages de débogage (console du navigateur : F12 > Console)
 function dbg(...args) {
@@ -1285,6 +1431,38 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 
 // tire une fonction au hasard dans un tableau et l'exécute
 const variante = fonctions => pick(fonctions)();
+
+// choisit les énigmes d'une épreuve dans sa réserve, en gardant l'ordre de difficulté
+//  - L.nb           : nombre d'énigmes de l'épreuve (sinon ENIGMES_MAX)
+//  - L.obligatoires : numéros (à partir de 0) des énigmes toujours posées
+//  - L.groupes      : [{ parmi: [...], nb: n }] → n énigmes tirées dans ce groupe
+function choisirEnigmes(L) {
+  const total = L.slots.length;
+  const nb = Math.min(total, L.nb || ENIGMES_MAX);
+  const choix = [...(L.obligatoires || [])];
+  const dansUnGroupe = new Set();
+  (L.groupes || []).forEach(g => {
+    g.parmi.forEach(k => dansUnGroupe.add(k));
+    choix.push(...shuffle(g.parmi).slice(0, g.nb));
+  });
+  const autres = shuffle([...Array(total).keys()].filter(k => !choix.includes(k) && !dansUnGroupe.has(k)));
+  choix.push(...autres.slice(0, nb - choix.length));
+  return choix.sort((a, b) => a - b);
+}
+
+// distribue les lettres du mot secret dans le désordre (une par épreuve)
+function melangerLettres() {
+  let t = shuffle(CODE.split(''));
+  while (t.join('') === CODE) {
+    t = shuffle(t);
+  }
+  return t;
+}
+
+// points retirés pour n coups de pouce (0 → 0, 1 → 10, 2 → 40)
+function coutIndices(n) {
+  return COUT_INDICE.slice(0, n).reduce((a, b) => a + b, 0);
+}
 
 // mélange un tableau
 function shuffle(a) {
@@ -1408,7 +1586,10 @@ function echelle(extra) {
 // masse volumique de l'hydromel en fonction de la concentration en sucre
 const rho = c => 998 + 0.38 * c;
 
-function courbe() {
+// courbe d'étalonnage ρ = f(Cm)
+// lecture : valeur de ρ à lire sur la courbe (traits pointillés), facultatif
+// petit   : true pour une version plus petite (rappel de cours)
+function courbe(lecture, petit) {
   const W = 500, H = 320, ml = 62, mr = 16, mt = 14, mb = 48;
   const pw = W - ml - mr, ph = H - mt - mb;
   const X = c => ml + c / 200 * pw;
@@ -1439,6 +1620,20 @@ function courbe() {
     g += `<circle cx="${X(c)}" cy="${Y(rho(c))}" r="4" fill="#1d4f7a"/>`;
   });
 
+  // lecture graphique en pointillés (pour l'exemple du cours)
+  if (lecture) {
+    const cLu = (lecture - 998) / 0.38;
+    const style = 'stroke="#1d4f7a" stroke-width="2" stroke-dasharray="6 4"';
+    // 1) de l'axe vertical jusqu'à la droite
+    g += `<line x1="${X(0)}" y1="${Y(lecture)}" x2="${X(cLu)}" y2="${Y(lecture)}" ${style}/>`;
+    // 2) de la droite jusqu'à l'axe horizontal
+    g += `<line x1="${X(cLu)}" y1="${Y(lecture)}" x2="${X(cLu)}" y2="${mt + ph}" ${style}/>`;
+    g += `<circle cx="${X(cLu)}" cy="${Y(lecture)}" r="6" fill="none" stroke="#1d4f7a" stroke-width="2.5"/>`;
+    // étiquettes
+    g += `<text x="${X(0) + 6}" y="${Y(lecture) - 7}" font-size="13" font-weight="bold" fill="#1d4f7a">① ρ = ${lecture.toLocaleString('fr-FR')} g/L</text>`;
+    g += `<text x="${X(cLu) + 7}" y="${mt + ph - 8}" font-size="13" font-weight="bold" fill="#1d4f7a">② C<tspan font-size="10" dy="3">m</tspan><tspan dy="-3"> ≈ ${Math.round(cLu)} g/L</tspan></text>`;
+  }
+
   // titres des axes
   g += `<text x="${ml + pw / 2}" y="${H - 6}" text-anchor="middle" font-size="13" font-weight="bold">Concentration en masse en sucre Cm (g/L)</text>`;
   g += `<text transform="translate(14 ${mt + ph / 2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="bold">Masse volumique ρ (g/L)</text>`;
@@ -1446,9 +1641,14 @@ function courbe() {
   const lignesC = [0, 50, 100, 150, 200].map(c => `<td>${c}</td>`).join('');
   const lignesR = [0, 50, 100, 150, 200].map(c => `<td>${rho(c).toLocaleString('fr-FR')}</td>`).join('');
 
+  let description = "Courbe d'étalonnage : droite passant par les points (0 ; 998), (50 ; 1017), (100 ; 1036), (150 ; 1055) et (200 ; 1074)";
+  if (lecture) {
+    description += `. Lecture : pour ρ = ${lecture} g/L, on va horizontalement jusqu'à la droite puis on descend : Cm ≈ ${Math.round((lecture - 998) / 0.38)} g/L`;
+  }
+
   return `
-    <svg viewBox="0 0 ${W} ${H}" style="max-width:520px;width:100%;background:#fffef8;border:1px solid #8a6a3b;border-radius:4px"
-         role="img" aria-label="Courbe d'étalonnage : droite passant par les points (0 ; 998), (50 ; 1017), (100 ; 1036), (150 ; 1055) et (200 ; 1074)">
+    <svg viewBox="0 0 ${W} ${H}" style="max-width:${petit ? 440 : 520}px;width:100%;background:#fffef8;border:1px solid #8a6a3b;border-radius:4px"
+         role="img" aria-label="${description}">
       ${g}
     </svg>
     <details style="margin-top:.4rem">
@@ -1487,6 +1687,7 @@ const LEVELS = [
 // ---------------------------------------------------------------------
 {
   nom: 'Ismaros',
+  notion: "Soluté, solvant et solution",
   lieu: 'Cité des Cicones, en Thrace',
   titre: 'Les amphores de Maron',
   lettre: 'P',
@@ -1513,13 +1714,13 @@ const LEVELS = [
          "Le solvant est l'espèce dans laquelle on dissout les autres."],
         "Une solution <b>aqueuse</b> a pour solvant l'<b>eau</b>. Les espèces dissoutes dans l'eau sont les <b>solutés</b>."),
       () => qcm(
-        "En général, dans une solution, le solvant est l'espèce chimique :",
+        "Le scribe de Maron note sur une tablette : « Dans le vin coupé d'eau, l'eau est le solvant. » En général, le solvant est l'espèce chimique :",
         "présente en plus grande quantité",
         ["présente en plus petite quantité", "qui est forcément solide", "qui donne la couleur à la solution"],
         ["Dans l'eau sucrée, qu'y a-t-il le plus : l'eau ou le sucre ?"],
         "Le solvant est en général l'espèce <b>majoritaire</b> ; les solutés sont dissous dedans, en plus petite quantité."),
       () => qcm(
-        "Dans une solution, le soluté est :",
+        "Sur une autre amphore, Maron a gravé le mot « soluté ». Dans une solution, le soluté est :",
         "l'espèce chimique dissoute dans le solvant",
         ["l'espèce chimique majoritaire", "toujours un liquide", "le récipient qui contient la solution"],
         ["Le mot « soluté » ressemble à « dissous »…"],
@@ -1562,7 +1763,7 @@ const LEVELS = [
          "…mais il n'y a qu'<b>un</b> solvant, l'espèce majoritaire."],
         "Une solution contient <b>un seul solvant</b> (ici l'eau, majoritaire) et peut contenir <b>plusieurs solutés</b>."),
       () => qcm(
-        "Un soluté peut-il être un gaz ?",
+        "Près d'Ismaros, une source donne une eau pétillante : des bulles de dioxyde de carbone s'en échappent. Un soluté peut-il être un gaz ?",
         "Oui : par exemple le dioxyde de carbone dissous dans une eau pétillante",
         ["Non, un soluté est toujours solide",
          "Non, un soluté est toujours liquide",
@@ -1570,7 +1771,7 @@ const LEVELS = [
         ["Pense aux bulles d'une boisson gazeuse."],
         "Un soluté peut être <b>solide</b> (sel), <b>liquide</b> (éthanol) ou <b>gazeux</b> (dioxyde de carbone)."),
       () => qcm(
-        "La teinture d'iode est obtenue en dissolvant du diiode dans de l'éthanol. Est-ce une solution aqueuse ?",
+        "Pour soigner les blessés de la bataille contre les Cicones, le médecin dissout du diiode dans de l'éthanol (teinture d'iode). Est-ce une solution aqueuse ?",
         "Non, car le solvant est l'éthanol et non l'eau",
         ["Oui, car toutes les solutions sont aqueuses",
          "Oui, car le diiode est dissous",
@@ -1586,6 +1787,7 @@ const LEVELS = [
 // ---------------------------------------------------------------------
 {
   nom: 'Lotophages',
+  notion: "Préparer une solution par dissolution",
   lieu: "Côte de Libye (l'île de Djerba, Tunisie actuelle)",
   titre: "Le remède contre l'oubli",
   lettre: 'E',
@@ -1645,7 +1847,7 @@ const LEVELS = [
       () => {
         const V = pick(['100,0', '250,0', '500,0']);
         return qcm(
-          `On prépare une solution dans une fiole jaugée de ${V} mL en complétant jusqu'au trait de jauge. Quel est le volume de la solution obtenue ?`,
+          `Le médecin prépare le remède contre le lotos dans une fiole jaugée de ${V} mL, en complétant jusqu'au trait de jauge. Quel est le volume de remède obtenu ?`,
           `${V} mL, le volume de la fiole jaugée`,
           [`${V} mL plus le volume du solide`,
            "le volume d'eau versé, qu'on ne connaît pas",
@@ -1659,7 +1861,7 @@ const LEVELS = [
     // Énigme 3 : concentration en masse ou masse volumique ?
     () => variante([
       () => qcm(
-        "Une eau sucrée a une masse volumique ρ = 1 020 g/L et une concentration en masse en sucre C<sub>m</sub> = 50 g/L. Que représente la valeur 1 020 g/L ?",
+        "Le remède contre le lotos est une eau sucrée : sa masse volumique vaut ρ = 1 020 g/L et sa concentration en masse en sucre C<sub>m</sub> = 50 g/L. Que représente la valeur 1 020 g/L ?",
         "la masse d'un litre de solution entière (eau + sucre)",
         ["la masse de sucre dissous dans un litre de solution",
          "la masse d'un litre d'eau pure",
@@ -1668,7 +1870,7 @@ const LEVELS = [
          "La concentration en masse ne concerne que le <b>soluté</b>."],
         `ρ = m(solution)/V(solution) : 1 L de solution pèse 1 020 g. ${Cm} = m(soluté)/V(solution) : ce litre contient 50 g de sucre.`),
       () => qcm(
-        "La concentration en masse d'un soluté se calcule par :",
+        "Pour noter la recette du remède sur sa tablette, le médecin doit calculer la concentration en masse du sucre. Elle se calcule par :",
         "C<sub>m</sub> = m(soluté) / V(solution)",
         ["C<sub>m</sub> = m(solution) / V(solution)",
          "C<sub>m</sub> = m(soluté) × V(solution)",
@@ -1696,6 +1898,7 @@ const LEVELS = [
 // ---------------------------------------------------------------------
 {
   nom: 'Île des Cyclopes',
+  notion: "Calculer une concentration en masse",
   lieu: "Côte orientale de la Sicile, au pied de l'Etna",
   titre: 'Le piège de Polyphème',
   lettre: 'N',
@@ -1751,20 +1954,20 @@ const LEVELS = [
     // Énigme 3 : verrerie de la dissolution
     () => variante([
       () => qcm(
-        "Pour préparer <b>précisément</b> 100,0 mL de solution par dissolution, quelle verrerie faut-il utiliser ?",
+        "Pour préparer <b>précisément</b> 100,0 mL de saumure pour les fromages de Polyphème (dissolution de sel), quelle verrerie faut-il utiliser ?",
         "une fiole jaugée de 100,0 mL",
         ["un bécher de 100 mL", "une éprouvette graduée de 100 mL", "un erlenmeyer de 100 mL"],
         ["Le volume doit être connu avec précision (« ,0 »).",
          "Cette verrerie possède un unique trait de jauge."],
         "La <b>fiole jaugée</b> donne un volume très précis grâce à son trait de jauge. Le bécher et l'erlenmeyer ne servent pas à mesurer ; l'éprouvette est moins précise."),
       () => qcm(
-        "Pour mesurer la masse de soluté à dissoudre, on utilise :",
+        "Pour peser le sel de la saumure de Polyphème, un compagnon utilise :",
         "une balance et une coupelle",
         ["une éprouvette graduée", "une pipette jaugée", "un thermomètre"],
         ["On cherche une <b>masse</b>, en grammes."],
         "Une masse se mesure avec une <b>balance</b> (tarée avec la coupelle posée dessus)."),
       () => qcm(
-        "Après avoir versé le solide dans la fiole jaugée, on rince la coupelle avec de l'eau distillée au-dessus de la fiole. Pourquoi ?",
+        "Après avoir versé le sel de la saumure dans la fiole jaugée, un compagnon rince la coupelle avec de l'eau distillée au-dessus de la fiole. Pourquoi ?",
         "pour entraîner dans la fiole tout le soluté resté sur la coupelle",
         ["pour nettoyer la coupelle avant de la ranger",
          "pour refroidir la solution",
@@ -1817,6 +2020,7 @@ const LEVELS = [
 // ---------------------------------------------------------------------
 {
   nom: "Île d'Éole",
+  notion: "Utiliser C<sub>m</sub> = m / V dans tous les sens",
   lieu: 'Îles Éoliennes, au nord de la Sicile',
   titre: "L'outre des vents",
   lettre: 'E',
@@ -1856,7 +2060,7 @@ const LEVELS = [
       const c = pick([8, 12, 16, 20]);
       const v = pick([250, 500, 50, 200]);
       return num(
-        `Quelle masse de soluté contiennent ${v} mL d'une solution à ${c} g/L ?`,
+        `Une gourde de l'équipage contient ${v} mL de la solution de résine d'Éole, à ${c} g/L. Quelle masse de résine contient-elle ?`,
         c * v / 1000, 'g',
         [`m = ${Cm} × V avec V en litres.`,
          `${v} mL = ${fx(v / 1000, 3)} L.`],
@@ -1879,25 +2083,25 @@ const LEVELS = [
     // Énigme 4 : raisonner sur la proportionnalité
     () => variante([
       () => qcm(
-        "On garde la même masse de soluté mais on prépare un volume de solution <b>deux fois plus grand</b>. La concentration en masse est alors :",
+        "Éole garde la même masse de résine mais prépare un volume de solution <b>deux fois plus grand</b>. La concentration en masse est alors :",
         "divisée par 2",
         ["multipliée par 2", "inchangée", "divisée par 4"],
         [`${Cm} = m / V : que se passe-t-il si le dénominateur double ?`],
         `${Cm} = m / V : si V double à m constant, ${Cm} est <b>divisée par 2</b>. C'est le principe de la dilution !`),
       () => qcm(
-        "On dissout une masse de soluté <b>trois fois plus grande</b> dans le même volume de solution. La concentration en masse est :",
+        "Pour une outre plus solide, Éole dissout une masse de résine <b>trois fois plus grande</b> dans le même volume de solution. La concentration en masse est :",
         "multipliée par 3",
         ["divisée par 3", "inchangée", "multipliée par 9"],
         [`${Cm} = m / V : que se passe-t-il si le numérateur triple ?`],
         `${Cm} est proportionnelle à m quand V est fixé : elle est <b>multipliée par 3</b>.`),
       () => qcm(
-        "On garde la même masse de soluté mais on prépare un volume de solution <b>deux fois plus petit</b>. La concentration en masse est :",
+        "Éole garde la même masse de résine mais prépare un volume de solution <b>deux fois plus petit</b>. La concentration en masse est :",
         "multipliée par 2",
         ["divisée par 2", "inchangée", "multipliée par 4"],
         [`Diviser le dénominateur par 2, c'est…`],
         `Même masse dans un volume deux fois plus petit : la solution est <b>deux fois plus concentrée</b>.`),
       () => qcm(
-        "On double à la fois la masse de soluté et le volume de solution. La concentration en masse est :",
+        "Pour sceller deux outres au lieu d'une, Éole double à la fois la masse de résine et le volume de solution. La concentration en masse est :",
         "inchangée",
         ["multipliée par 2", "divisée par 2", "multipliée par 4"],
         [`${Cm} = (2 × m) / (2 × V) = ?`],
@@ -1927,15 +2131,22 @@ const LEVELS = [
 // ---------------------------------------------------------------------
 {
   nom: 'Île de Circé',
+  notion: "La dilution",
   lieu: 'Aiaié (le mont Circé, au sud de Rome)',
   titre: 'La potion de la magicienne',
   lettre: 'L',
+  nb: 5,                                 // 5 énigmes
+  obligatoires: [6],                     // un protocole à remettre dans l'ordre, toujours posé
+  groupes: [{ parmi: [1, 2, 3], nb: 2 }], // 2 calculs parmi C fille, V mère et V fille
   recit: "Après la fureur des vents et les géants Lestrygons, Ulysse aborde l'île de la magicienne Circé, qui change ses compagnons en porcs grâce à une potion. Hermès lui donne la plante moly. Pour rendre la potion inoffensive, il faut la diluer avec précision.",
   cours: `
     <h4>Diluer une solution</h4>
     <p>Diluer, c'est <b>ajouter du solvant</b> à une solution (la solution <b>mère</b>) pour obtenir une solution moins concentrée (la solution <b>fille</b>).</p>
     <p>La <b>masse de soluté se conserve</b> : m = C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>.</p>
+    <p>Selon la grandeur cherchée, on isole :</p>
     <div class="formule">C<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / V<sub>fille</sub></div>
+    <div class="formule">V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub></div>
+    <div class="formule">V<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / C<sub>fille</sub></div>
     <div class="formule">Facteur de dilution : F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>mère</sub></div>
     <div class="exemple"><b>Exemple :</b> on prélève 10 mL de solution à 50 g/L et on complète à 100 mL.<br>
       C<sub>fille</sub> = 50 × 10 / 100 = <b>5 g/L</b> ; F = 10 (solution 10 fois moins concentrée).</div>
@@ -1951,19 +2162,19 @@ const LEVELS = [
     // Énigme 1 : principe de la dilution
     () => variante([
       () => qcm(
-        "Lors d'une dilution, on ajoute du solvant à une solution. Qu'est-ce qui se conserve ?",
+        "Pour affaiblir la potion de Circé, Ulysse y ajoute de l'eau : c'est une dilution. Qu'est-ce qui se conserve ?",
         "la masse de soluté",
         ["la concentration en masse", "le volume de la solution", "la masse de solvant"],
         ["On n'ajoute <b>que</b> de l'eau…"],
         "On n'ajoute que du solvant : la <b>masse de soluté</b> est la même dans le prélèvement et dans la solution fille."),
       () => qcm(
-        "Lors d'une dilution, la concentration en masse du soluté :",
+        "Quand Ulysse dilue la potion de Circé, la concentration en masse de la potion :",
         "diminue",
         ["augmente", "reste la même", "devient nulle"],
         ["Même masse de soluté, mais dans un volume plus grand…"],
         "Même masse de soluté dans un volume plus grand : la concentration <b>diminue</b>."),
       () => qcm(
-        "Diluer une potion 10 fois, c'est :",
+        "Hermès conseille à Ulysse de diluer la potion de Circé 10 fois. C'est :",
         "obtenir une solution 10 fois moins concentrée",
         ["obtenir une solution 10 fois plus concentrée",
          "ajouter 10 mL d'eau",
@@ -1972,71 +2183,86 @@ const LEVELS = [
         "Facteur de dilution F = 10 : C<sub>fille</sub> = C<sub>mère</sub> / 10. La solution est <b>10 fois moins concentrée</b>.")
     ]),
 
-    // Énigme 2 : calculer la concentration de la solution fille
+    // Énigme 2 : calculer C fille
     () => {
       const cm = pick([20, 50, 100]);
       const vm = pick([5, 10, 20]);
       const vf = pick([50, 100, 200, 250].filter(x => x > vm * 2));
       return num(
-        `On prélève V<sub>mère</sub> = ${vm} mL de potion à ${cm} g/L et on complète avec de l'eau jusqu'à V<sub>fille</sub> = ${vf} mL. Calcule la concentration de la solution fille.`,
+        `Ulysse prélève V<sub>mère</sub> = ${vm} mL de la potion de Circé, à ${cm} g/L, et complète avec de l'eau jusqu'à V<sub>fille</sub> = ${vf} mL. Calcule la concentration C<sub>fille</sub> de la potion diluée.`,
         cm * vm / vf, 'g/L',
-        ["C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
-         `C<sub>fille</sub> = ${cm} × ${vm} ÷ ${vf}`],
-        `C<sub>fille</sub> = ${cm} × ${vm} / ${vf} = <b>${fr(cm * vm / vf)} g/L</b>. Les volumes peuvent rester en mL car ils sont des deux côtés.`,
+        ["Formule de la dilution : C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         "C<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / V<sub>fille</sub>"],
+        `C<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / V<sub>fille</sub> = ${cm} × ${vm} / ${vf} = <b>${fr(cm * vm / vf)} g/L</b>. Les volumes peuvent rester en mL car ils sont des deux côtés.`,
         { inv: cm * vf / vm, invMsg: "Une dilution <b>diminue</b> la concentration ! Vérifie ton calcul." });
     },
 
-    // Énigme 3 : facteur de dilution ou volume à prélever
-    () => variante([
-      () => {
-        const c = pick([60, 100, 120, 200]);
-        const F = pick([4, 5, 10, 20]);
-        return num(
-          `Circé dilue une potion de ${c} g/L et obtient une solution à ${fr(c / F)} g/L. Quel est le facteur de dilution F ?`,
-          F, '(sans unité)',
-          ["F = C<sub>mère</sub> / C<sub>fille</sub>",
-           `F = ${c} ÷ ${fr(c / F)}`],
-          `F = ${c} / ${fr(c / F)} = <b>${F}</b> : la potion est ${F} fois moins concentrée.`,
-          { tol: 0.01 });
-      },
-      () => {
-        const [vf, F] = pick([[100, 10], [100, 20], [250, 25], [500, 50], [200, 10], [250, 10]]);
-        const c = pick([40, 80, 100]);
-        return num(
-          `On veut préparer V<sub>fille</sub> = ${vf} mL de solution à ${fr(c / F)} g/L à partir d'une solution mère à ${c} g/L. Quel volume de solution mère faut-il prélever (en mL) ?`,
-          vf / F, 'mL',
-          ["V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub>",
-           `V<sub>mère</sub> = ${fr(c / F)} × ${vf} ÷ ${c}`],
-          `V<sub>mère</sub> = ${fr(c / F)} × ${vf} / ${c} = <b>${fr(vf / F)} mL</b> (facteur de dilution F = ${F}).`);
-      }
-    ]),
+    // Énigme 3 : calculer V mère
+    () => {
+      const [vf, F] = pick([[100, 10], [100, 20], [250, 25], [500, 50], [200, 10], [250, 10], [50, 5]]);
+      const c = pick([40, 80, 100]);
+      return num(
+        `Hermès demande à Ulysse de préparer V<sub>fille</sub> = ${vf} mL de potion à ${fr(c / F)} g/L, à partir de la potion de Circé à ${c} g/L. Quel volume V<sub>mère</sub> de potion faut-il prélever (en mL) ?`,
+        vf / F, 'mL',
+        ["Formule de la dilution : C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         "V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub>"],
+        `V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub> = ${fr(c / F)} × ${vf} / ${c} = <b>${fr(vf / F)} mL</b> (facteur de dilution F = ${F}).`,
+        { inv: vf * F, invMsg: "Le volume prélevé doit être <b>plus petit</b> que le volume final ! Vérifie ta formule." });
+    },
 
-    // Énigme 4 : verrerie de la dilution
+    // Énigme 4 : calculer V fille
+    () => {
+      const cm = pick([50, 100, 200]);
+      const vm = pick([5, 10, 20]);
+      const F = pick([5, 10, 20, 25]);
+      return num(
+        `Ulysse prélève V<sub>mère</sub> = ${vm} mL de la potion de Circé, à ${cm} g/L. Hermès affirme qu'elle devient inoffensive à ${fr(cm / F)} g/L. Jusqu'à quel volume V<sub>fille</sub> doit-il compléter avec de l'eau (en mL) ?`,
+        vm * F, 'mL',
+        ["Formule de la dilution : C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         "V<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / C<sub>fille</sub>"],
+        `V<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / C<sub>fille</sub> = ${cm} × ${vm} / ${fr(cm / F)} = <b>${vm * F} mL</b> (facteur de dilution F = ${F}).`,
+        { inv: vm / F, invMsg: "Le volume final doit être <b>plus grand</b> que le volume prélevé ! Vérifie ta formule." });
+    },
+
+    // Énigme 5 : facteur de dilution
+    () => {
+      const c = pick([60, 100, 120, 200]);
+      const F = pick([4, 5, 10, 20]);
+      return num(
+        `Circé dilue une potion de ${c} g/L et obtient une potion à ${fr(c / F)} g/L. Quel est le facteur de dilution F ?`,
+        F, '(sans unité)',
+        ["Facteur de dilution : F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>mère</sub>",
+         "Ici on connaît les deux concentrations : F = C<sub>mère</sub> / C<sub>fille</sub>"],
+        `F = C<sub>mère</sub> / C<sub>fille</sub> = ${c} / ${fr(c / F)} = <b>${F}</b> : la potion est ${F} fois moins concentrée.`,
+        { tol: 0.01 });
+    },
+
+    // Énigme 6 : verrerie de la dilution
     () => variante([
       () => qcm(
-        "Pour prélever <b>précisément</b> 10,0 mL de solution mère, on utilise :",
+        "Pour prélever <b>précisément</b> 10,0 mL de la potion de Circé (solution mère), Ulysse utilise :",
         "une pipette jaugée de 10,0 mL munie d'une propipette",
         ["une éprouvette graduée de 10 mL", "un bécher de 10 mL", "une fiole jaugée de 10,0 mL"],
         ["Pour <b>prélever</b> (et non contenir) un volume précis…"],
         "La <b>pipette jaugée</b> (avec propipette : on ne pipette jamais à la bouche !) sert à prélever un volume précis."),
       () => qcm(
-        "Pour obtenir précisément V<sub>fille</sub> = 100,0 mL de solution fille, on verse le prélèvement dans :",
+        "Pour obtenir précisément V<sub>fille</sub> = 100,0 mL de potion diluée, Ulysse verse le prélèvement dans :",
         "une fiole jaugée de 100,0 mL",
         ["un bécher de 100 mL", "une pipette jaugée de 100 mL", "un erlenmeyer de 100 mL"],
         ["Quelle verrerie <b>contient</b> un volume précis grâce à un trait de jauge ?"],
         "La <b>fiole jaugée</b> contient un volume précis : on complète jusqu'au trait de jauge."),
       () => qcm(
-        "Pourquoi verse-t-on un peu de solution mère dans un bécher avant de pipeter, au lieu de pipeter directement dans le flacon ?",
-        "pour ne pas polluer le flacon de solution mère",
+        "Pourquoi Ulysse verse-t-il un peu de potion dans un bécher avant de pipeter, au lieu de pipeter directement dans l'amphore de Circé ?",
+        "pour ne pas polluer toute la potion mère de l'amphore",
         ["pour diluer la solution mère", "pour la réchauffer", "pour mesurer son volume"],
         ["Une pipette pas parfaitement propre pourrait contaminer…"],
         "On ne pipette jamais dans le flacon : on risquerait de <b>contaminer</b> toute la solution mère.")
     ]),
 
-    // Énigme 5 : remettre un protocole dans l'ordre
+    // Énigme 7 : remettre un protocole dans l'ordre (toujours posée)
     () => variante([
       () => order(
-        "Circé dilue sa potion. Remets dans l'ordre les étapes de la <b>dilution</b> (utilise les flèches ↑ ↓).",
+        "Ulysse dilue la potion de Circé. Remets dans l'ordre les étapes de la <b>dilution</b> (utilise les flèches ↑ ↓).",
         ["Verser un peu de solution mère dans un bécher.",
          "Prélever le volume V<sub>mère</sub> avec une pipette jaugée munie d'une propipette.",
          "Verser le prélèvement dans la fiole jaugée de volume V<sub>fille</sub>.",
@@ -2060,149 +2286,15 @@ const LEVELS = [
 },
 
 // ---------------------------------------------------------------------
-// ÉPREUVE 6 : SIRÈNES — concentration maximale (saturation)
-// ---------------------------------------------------------------------
-{
-  nom: 'Rocher des Sirènes',
-  lieu: 'Golfe de Naples (îlots Li Galli)',
-  titre: 'Le chant de la saturation',
-  lettre: 'O',
-  recit: "Ulysse bouche les oreilles de ses compagnons avec de la cire et se fait attacher au mât. Sur le rocher des Sirènes, l'eau de mer s'évapore dans des cuvettes et des cristaux de sel se déposent. Pour passer sans être envoûté, il faut comprendre jusqu'où une espèce peut se dissoudre.",
-  cours: `
-    <h4>Concentration maximale</h4>
-    <p>On ne peut pas dissoudre une quantité illimitée de soluté. La <b>concentration maximale</b> C<sub>max</sub> est la plus grande concentration en masse qu'on peut atteindre (à une température donnée).</p>
-    <p>Quand on l'atteint, le soluté ajouté ne se dissout plus : la solution est <b>saturée</b> et un <b>dépôt solide</b> reste au fond.</p>
-    <h4>La déterminer par l'expérience</h4>
-    <ol>
-      <li>On ajoute le soluté par petites quantités dans un volume V connu d'eau, en agitant.</li>
-      <li>On note la dernière masse <b>entièrement dissoute</b> et la première qui laisse un dépôt.</li>
-      <li>C<sub>max</sub> ≈ m(dernière masse dissoute) / V.</li>
-    </ol>
-    <div class="exemple"><b>Exemple :</b> dans 100 mL d'eau, 36 g de sel se dissolvent, mais à 39 g il reste un dépôt.<br>
-      C<sub>max</sub> ≈ 36 / 0,100 = <b>360 g/L</b>.</div>
-    <h4>Quelques valeurs à 20 °C</h4>
-    <ul>
-      <li>sel (chlorure de sodium) : 360 g/L</li>
-      <li>sucre (saccharose) : 2 000 g/L</li>
-      <li>bicarbonate de sodium : 96 g/L</li>
-    </ul>
-    <p>Masse maximale qu'on peut dissoudre : m<sub>max</sub> = C<sub>max</sub> × V.</p>`,
-  slots: [
-    // Énigme 1 : saturation et solubilité
-    () => variante([
-      () => qcm(
-        "Une solution est dite <b>saturée</b> lorsque :",
-        "le soluté ne peut plus se dissoudre : un dépôt solide persiste",
-        ["elle contient beaucoup d'eau", "elle est colorée", "elle a été chauffée"],
-        ["Pense au sucre que tu ajoutes dans un verre d'eau, encore et encore…"],
-        "Quand la concentration atteint la <b>concentration maximale</b>, le soluté ne se dissout plus : la solution est <b>saturée</b> et un dépôt apparaît."),
-      () => qcm(
-        "Après une longue agitation, un dépôt de sel reste au fond de la cuvette. La solution au-dessus du dépôt est :",
-        "saturée en sel",
-        ["de l'eau pure", "diluée", "un corps pur"],
-        ["Si du sel reste solide, c'est que l'eau ne peut plus en dissoudre."],
-        "Un dépôt qui persiste après agitation montre que la solution est <b>saturée</b> : sa concentration est égale à C<sub>max</sub>."),
-      () => {
-        const [a, b] = shuffle(SOLUBLES).slice(0, 2);
-        const plus = a.cmax > b.cmax ? a : b;
-        return qcm(
-          `Concentrations maximales dans l'eau à 20 °C : ${a.nom} ≈ ${a.cmax.toLocaleString('fr-FR')} g/L ; ${b.nom} ≈ ${b.cmax.toLocaleString('fr-FR')} g/L. Lequel est le plus soluble dans l'eau ?`,
-          plus.nom,
-          [(plus === a ? b : a).nom, "ils sont aussi solubles l'un que l'autre", "on ne peut pas savoir"],
-          ["Plus la concentration maximale est grande, plus on peut dissoudre de soluté."],
-          `On peut dissoudre jusqu'à ${plus.cmax.toLocaleString('fr-FR')} g de ${plus.court} par litre : c'est le plus <b>soluble</b>.`);
-      }
-    ]),
-
-    // Énigme 2 : déterminer Cmax à partir d'un tableau de mesures
-    () => {
-      const V = pick([50, 100]);
-      const k = V / 100;
-      const s = pick([
-        { nom: 'sel', pas: [30, 33, 36, 39, 42], dernier: 36, ref: 360, a: 370, tolA: 20, sol: 'environ 360 g/L (entre 350 et 390 g/L accepté)' },
-        { nom: 'sucre', pas: [180, 190, 200, 210, 220], dernier: 200, ref: 2000, a: 2050, tolA: 100, sol: 'environ 2 000 g/L (entre 1 950 et 2 150 g/L accepté)' }
-      ]);
-      const masses = s.pas.map(x => x * k);
-      const ligneMasses = masses.map(m => `<td>${fr(m)}</td>`).join('');
-      const ligneObs = masses.map(m => `<td>${m <= s.dernier * k ? 'tout est dissous' : '<b>dépôt solide</b>'}</td>`).join('');
-      const tab = `
-        <table class="tableau">
-          <tr><th>Masse totale de ${s.nom} ajoutée (g)</th>${ligneMasses}</tr>
-          <tr><th>Observation après agitation</th>${ligneObs}</tr>
-        </table>`;
-      const suivant = s.pas[s.pas.indexOf(s.dernier) + 1];
-      return num(
-        `Expérience : on ajoute progressivement du ${s.nom} dans ${V} mL d'eau, en agitant. On considère que le volume de la solution reste égal à ${V} mL. Estime la concentration maximale du ${s.nom} (en g/L).`,
-        s.a, 'g/L',
-        ["Repère la dernière masse <b>entièrement dissoute</b> et la première qui donne un dépôt.",
-         `C<sub>max</sub> ≈ m(dernière masse dissoute) / V, avec V = ${fx(V / 1000, 3)} L.`],
-        `Tout est dissous jusqu'à ${fr(s.dernier * k)} g ; un dépôt apparaît à ${fr(suivant * k)} g. Donc C<sub>max</sub> est entre ${fr(s.dernier * k)} / ${fx(V / 1000, 3)} = ${s.ref.toLocaleString('fr-FR')} g/L et ${(suivant * 10).toLocaleString('fr-FR')} g/L. La valeur de référence est <b>${s.ref.toLocaleString('fr-FR')} g/L</b>.`,
-        { vis: tab, tolA: s.tolA, solTxt: s.sol });
-    },
-
-    // Énigme 3 : masse maximale dissoute
-    () => {
-      const s = pick(SOLUBLES);
-      const v = pick([250, 500, 150, 50]);
-      return num(
-        `La concentration maximale de ${s.nom} dans l'eau est ${s.cmax.toLocaleString('fr-FR')} g/L. Quelle masse maximale peut-on dissoudre dans ${v} mL d'eau ?`,
-        s.cmax * v / 1000, 'g',
-        ["m<sub>max</sub> = C<sub>max</sub> × V, V en litres.",
-         `m<sub>max</sub> = ${s.cmax.toLocaleString('fr-FR')} × ${fx(v / 1000, 3)}`],
-        `m<sub>max</sub> = ${s.cmax.toLocaleString('fr-FR')} × ${fx(v / 1000, 3)} = <b>${fr(s.cmax * v / 1000)} g</b>.`);
-    },
-
-    // Énigme 4 : la solution sera-t-elle saturée ?
-    () => {
-      const m = pick([10, 15, 20, 12]);
-      const c = m / 0.05;
-      const saturee = c > 360;
-      const repDepot = `Il restera du sel solide (dépôt) : ${fr(c)} g/L dépasserait 360 g/L`;
-      const repDissous = `Tout le sel se dissout : ${fr(c)} g/L est inférieur à 360 g/L`;
-      return qcm(
-        `Un marin verse ${m} g de sel dans 50 mL d'eau (C<sub>max</sub> du sel = 360 g/L). Que va-t-il observer ?`,
-        saturee ? repDepot : repDissous,
-        [saturee ? repDissous : repDepot, "Le sel se transforme en liquide", "L'eau devient bleue"],
-        ["Calcule la concentration qu'on obtiendrait si tout se dissolvait.",
-         `${m} g ÷ 0,050 L = ?`],
-        `Si tout se dissolvait : ${Cm} = ${m} / 0,050 = ${fr(c)} g/L. ` +
-          (saturee
-            ? "C'est plus que 360 g/L : la solution est <b>saturée</b>, il reste un dépôt."
-            : "C'est moins que 360 g/L : <b>tout se dissout</b>, la solution n'est pas saturée."));
-    },
-
-    // Énigme 5 : agir sur une solution saturée
-    () => variante([
-      () => qcm(
-        "Une cuvette contient une solution saturée de sel avec un dépôt au fond. On ajoute de l'eau et on agite. Que peut-il se passer ?",
-        "le dépôt peut se dissoudre en partie ou totalement",
-        ["le dépôt grossit", "rien ne change jamais", "l'eau ajoutée devient du sel"],
-        ["Plus de solvant = on peut dissoudre plus de soluté."],
-        "En ajoutant du solvant, la masse maximale qu'on peut dissoudre augmente (m<sub>max</sub> = C<sub>max</sub> × V) : le dépôt peut <b>se dissoudre</b>."),
-      () => qcm(
-        "On ajoute encore 5 g de sel dans une solution déjà saturée (avec dépôt), sans ajouter d'eau. Que devient ce sel ?",
-        "il ne se dissout pas : il rejoint le dépôt",
-        ["il se dissout et la concentration augmente", "il fait fondre le dépôt", "il se transforme en gaz"],
-        ["Une solution saturée a déjà atteint C<sub>max</sub>."],
-        "La solution est déjà à C<sub>max</sub> : le sel ajouté <b>ne se dissout pas</b>, il s'ajoute au dépôt."),
-      () => qcm(
-        "On filtre une solution saturée de sel pour retirer le dépôt. Quelle est la concentration en sel du liquide obtenu (à 20 °C) ?",
-        "environ 360 g/L, la concentration maximale",
-        ["0 g/L car on a retiré le sel", "plus de 360 g/L", "on ne peut pas le savoir"],
-        ["Le liquide au-dessus du dépôt est saturé…"],
-        "Le liquide d'une solution saturée a une concentration égale à <b>C<sub>max</sub> ≈ 360 g/L</b>, que le dépôt soit gros ou petit.")
-    ])
-  ]
-},
-
-// ---------------------------------------------------------------------
-// ÉPREUVE 7 : CHARYBDE ET SCYLLA — échelle de teinte
+// ÉPREUVE 6 : CHARYBDE ET SCYLLA — échelle de teinte
 // ---------------------------------------------------------------------
 {
   nom: 'Charybde et Scylla',
+  notion: "L'échelle de teinte",
   lieu: 'Détroit de Messine, entre Sicile et Italie',
   titre: 'Le détroit des teintes',
   lettre: 'P',
+  nb: 5,                 // 5 énigmes
   recit: "D'un côté Scylla, monstre à six têtes ; de l'autre Charybde, tourbillon qui engloutit la mer. Pour passer entre les deux, le pilote compare la couleur de l'eau puisée à une échelle de teintes de sulfate de cuivre (bleu) : il en déduit la concentration… et la route à suivre.",
   cours: `
     <h4>L'échelle de teinte</h4>
@@ -2223,7 +2315,7 @@ const LEVELS = [
     // Énigme 1 : principe de l'échelle de teinte
     () => variante([
       () => qcm(
-        "Une échelle de teinte est :",
+        "Pour franchir le détroit, le pilote d'Ulysse utilise une « échelle de teinte ». Une échelle de teinte est :",
         "une série de solutions d'un même soluté, de concentrations connues",
         ["une série de solutions de solutés différents",
          "une seule solution très colorée",
@@ -2231,7 +2323,7 @@ const LEVELS = [
         ["Pour comparer, il faut des références…"],
         "Une échelle de teinte est une <b>gamme d'étalonnage</b> : des solutions du <b>même soluté</b> à des concentrations <b>connues</b>."),
       () => qcm(
-        "Comment prépare-t-on en général les tubes d'une échelle de teinte ?",
+        "Comment le pilote a-t-il préparé les tubes de son échelle de teinte ?",
         "par dilutions d'une même solution mère de concentration connue",
         ["en mélangeant des solutés différents",
          "en chauffant la solution inconnue",
@@ -2239,7 +2331,7 @@ const LEVELS = [
         ["On veut des concentrations connues avec précision…"],
         "On dilue une <b>solution mère</b> de concentration connue : chaque tube a une concentration calculée avec C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>."),
       () => qcm(
-        "Pour que la comparaison des teintes soit correcte, il faut :",
+        "Pour que le pilote compare correctement les teintes sur le pont du navire, il faut :",
         "des tubes identiques, la même hauteur de liquide et un fond blanc",
         ["des tubes de tailles différentes",
          "remplir chaque tube à une hauteur différente",
@@ -2271,10 +2363,10 @@ const LEVELS = [
     () => {
       const cf = pick([2, 4, 6, 8]);
       return num(
-        `Pour préparer le tube à ${cf} g/L de l'échelle (volume total 10,0 mL), on dilue une solution mère à 10 g/L. Quel volume de solution mère faut-il prélever (en mL) ?`,
+        `Pour préparer le tube à ${cf} g/L de son échelle, le pilote (volume total 10,0 mL) dilue une solution mère à 10 g/L. Quel volume de solution mère faut-il prélever (en mL) ?`,
         cf, 'mL',
-        ["C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
-         `V<sub>mère</sub> = ${cf} × 10,0 ÷ 10`],
+        ["Formule de la dilution : C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         "V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub>"],
         `V<sub>mère</sub> = ${cf} × 10,0 / 10 = <b>${cf} mL</b>, puis on ajoute ${10 - cf} mL d'eau distillée.`);
     },
 
@@ -2298,7 +2390,7 @@ const LEVELS = [
     // Énigme 5 : limites de la méthode
     () => variante([
       () => qcm(
-        "Pourquoi une échelle de teinte ne donne-t-elle souvent qu'un <b>encadrement</b> de la concentration ?",
+        "Pourquoi l'échelle de teinte du pilote ne lui donne-t-elle souvent qu'un <b>encadrement</b> de la concentration ?",
         "car la comparaison est visuelle et le nombre de tubes de référence est limité",
         ["car le sulfate de cuivre n'est pas soluble",
          "car la concentration change quand on regarde le tube",
@@ -2306,13 +2398,13 @@ const LEVELS = [
         ["Peut-on distinguer à l'œil deux bleus très proches ?"],
         "La comparaison à l'œil est peu précise et on n'a qu'un nombre limité de tubes : on obtient un <b>encadrement</b>."),
       () => qcm(
-        "La méthode de l'échelle de teinte ne fonctionne que si :",
+        "La méthode du pilote (comparer à une échelle de teinte) ne fonctionne que si :",
         "la solution est colorée par le soluté étudié",
         ["la solution est incolore", "la solution est saturée", "la solution est chaude"],
         ["On compare des <b>couleurs</b>…"],
         "On compare des teintes : le soluté doit <b>colorer</b> la solution. Pour de l'eau sucrée (incolore), on utilise plutôt la masse volumique."),
       () => qcm(
-        "Le tube X est plus foncé que le tube le plus concentré de l'échelle (10 g/L). Que faut-il faire ?",
+        "Tout près du gouffre de Charybde, l'eau puisée (tube X) est plus foncée que le tube le plus concentré de l'échelle (10 g/L). Que doit faire le pilote ?",
         "diluer X d'un facteur connu, le comparer à nouveau, puis multiplier par ce facteur",
         ["conclure que X est à 10 g/L",
          "ajouter du soluté dans les tubes de l'échelle au hasard",
@@ -2324,13 +2416,153 @@ const LEVELS = [
 },
 
 // ---------------------------------------------------------------------
+// ÉPREUVE 7 : THRINACIE — concentration maximale (saturation)
+// ---------------------------------------------------------------------
+{
+  nom: 'Thrinacie',
+  notion: "La concentration maximale",
+  lieu: "L'île du Soleil (la Sicile, côte des marais salants de Trapani)",
+  titre: "Le sel d'Hélios",
+  lettre: 'O',
+  recit: "Rescapés de Charybde et Scylla, Ulysse et ses compagnons abordent Thrinacie, l'île du Soleil. Tirésias et Circé l'avaient prévenu : surtout, ne touchez pas aux vaches sacrées d'Hélios ! Mais les vents contraires bloquent le navire un mois entier et les vivres s'épuisent. Pour conserver les poissons pêchés, Ulysse fait récolter du sel : dans les bassins de la côte, le soleil d'Hélios évapore l'eau de mer jusqu'à ce que des cristaux apparaissent. Jusqu'où peut-on dissoudre du sel dans l'eau ?",
+  cours: `
+    <h4>Concentration maximale</h4>
+    <p>On ne peut pas dissoudre une quantité illimitée de soluté. La <b>concentration maximale</b> C<sub>max</sub> est la plus grande concentration en masse qu'on peut atteindre (à une température donnée).</p>
+    <p>Quand on l'atteint, le soluté ajouté ne se dissout plus : la solution est <b>saturée</b> et un <b>dépôt solide</b> reste au fond.</p>
+    <h4>La déterminer par l'expérience</h4>
+    <ol>
+      <li>On ajoute le soluté par petites quantités dans un volume V connu d'eau, en agitant.</li>
+      <li>On note la dernière masse <b>entièrement dissoute</b> et la première qui laisse un dépôt.</li>
+      <li>C<sub>max</sub> ≈ m(dernière masse dissoute) / V.</li>
+    </ol>
+    <div class="exemple"><b>Exemple :</b> dans 100 mL d'eau, 36 g de sel se dissolvent, mais à 39 g il reste un dépôt.<br>
+      C<sub>max</sub> ≈ 36 / 0,100 = <b>360 g/L</b>.</div>
+    <h4>Quelques valeurs à 20 °C</h4>
+    <ul>
+      <li>sel (chlorure de sodium) : 360 g/L</li>
+      <li>sucre (saccharose) : 2 000 g/L</li>
+      <li>bicarbonate de sodium : 96 g/L</li>
+    </ul>
+    <p>Masse maximale qu'on peut dissoudre : m<sub>max</sub> = C<sub>max</sub> × V.</p>`,
+  slots: [
+    // Énigme 1 : saturation et solubilité
+    () => variante([
+      () => qcm(
+        "Dans les bassins de Thrinacie, le soleil d'Hélios évapore l'eau de mer : elle devient « saturée » en sel. Une solution est saturée lorsque :",
+        "le soluté ne peut plus se dissoudre : un dépôt solide persiste",
+        ["elle contient beaucoup d'eau", "elle est colorée", "elle a été chauffée"],
+        ["Pense au sucre que tu ajoutes dans un verre d'eau, encore et encore…"],
+        "Quand la concentration atteint la <b>concentration maximale</b>, le soluté ne se dissout plus : la solution est <b>saturée</b> et un dépôt apparaît."),
+      () => qcm(
+        "Au fond d'un bassin de Thrinacie, un dépôt de sel reste même quand on agite l'eau. L'eau au-dessus du dépôt est :",
+        "saturée en sel",
+        ["de l'eau pure", "diluée", "un corps pur"],
+        ["Si du sel reste solide, c'est que l'eau ne peut plus en dissoudre."],
+        "Un dépôt qui persiste après agitation montre que la solution est <b>saturée</b> : sa concentration est égale à C<sub>max</sub>."),
+      () => {
+        const [a, b] = shuffle(SOLUBLES).slice(0, 2);
+        const plus = a.cmax > b.cmax ? a : b;
+        return qcm(
+          `Dans la cale du navire, il y a ${a.nom} et ${b.nom}. Concentrations maximales dans l'eau à 20 °C : ${a.nom} ≈ ${a.cmax.toLocaleString('fr-FR')} g/L ; ${b.nom} ≈ ${b.cmax.toLocaleString('fr-FR')} g/L. Lequel est le plus soluble dans l'eau ?`,
+          plus.nom,
+          [(plus === a ? b : a).nom, "ils sont aussi solubles l'un que l'autre", "on ne peut pas savoir"],
+          ["Plus la concentration maximale est grande, plus on peut dissoudre de soluté."],
+          `On peut dissoudre jusqu'à ${plus.cmax.toLocaleString('fr-FR')} g de ${plus.court} par litre : c'est le plus <b>soluble</b>.`);
+      }
+    ]),
+
+    // Énigme 2 : déterminer Cmax à partir d'un tableau de mesures
+    () => {
+      const V = pick([50, 100]);
+      const k = V / 100;
+      const s = pick([
+        { nom: 'sel', pas: [30, 33, 36, 39, 42], dernier: 36, ref: 360, a: 370, tolA: 20, sol: 'environ 360 g/L (entre 350 et 390 g/L accepté)' },
+        { nom: 'sucre', pas: [180, 190, 200, 210, 220], dernier: 200, ref: 2000, a: 2050, tolA: 100, sol: 'environ 2 000 g/L (entre 1 950 et 2 150 g/L accepté)' }
+      ]);
+      const masses = s.pas.map(x => x * k);
+      const ligneMasses = masses.map(m => `<td>${fr(m)}</td>`).join('');
+      const ligneObs = masses.map(m => `<td>${m <= s.dernier * k ? 'tout est dissous' : '<b>dépôt solide</b>'}</td>`).join('');
+      const tab = `
+        <table class="tableau">
+          <tr><th>Masse totale de ${s.nom} ajoutée (g)</th>${ligneMasses}</tr>
+          <tr><th>Observation après agitation</th>${ligneObs}</tr>
+        </table>`;
+      const suivant = s.pas[s.pas.indexOf(s.dernier) + 1];
+      return num(
+        `Pour comprendre la formation des cristaux dans les bassins d'Hélios, Euryloque ajoute progressivement du ${s.nom} dans ${V} mL d'eau, en agitant. On considère que le volume de la solution reste égal à ${V} mL. Estime la concentration maximale du ${s.nom} (en g/L).`,
+        s.a, 'g/L',
+        ["Repère la dernière masse <b>entièrement dissoute</b> et la première qui donne un dépôt.",
+         `C<sub>max</sub> ≈ m(dernière masse dissoute) / V, avec V = ${fx(V / 1000, 3)} L.`],
+        `Tout est dissous jusqu'à ${fr(s.dernier * k)} g ; un dépôt apparaît à ${fr(suivant * k)} g. Donc C<sub>max</sub> est entre ${fr(s.dernier * k)} / ${fx(V / 1000, 3)} = ${s.ref.toLocaleString('fr-FR')} g/L et ${(suivant * 10).toLocaleString('fr-FR')} g/L. La valeur de référence est <b>${s.ref.toLocaleString('fr-FR')} g/L</b>.`,
+        { vis: tab, tolA: s.tolA, solTxt: s.sol });
+    },
+
+    // Énigme 3 : masse maximale dissoute
+    () => {
+      const s = pick(SOLUBLES);
+      const v = pick([250, 500, 150, 50]);
+      return num(
+        `Le cuisinier du navire dispose de ${v} mL d'eau douce. La concentration maximale de ${s.nom} dans l'eau est ${s.cmax.toLocaleString('fr-FR')} g/L. Quelle masse maximale peut-il y dissoudre ?`,
+        s.cmax * v / 1000, 'g',
+        ["m<sub>max</sub> = C<sub>max</sub> × V, V en litres.",
+         `m<sub>max</sub> = ${s.cmax.toLocaleString('fr-FR')} × ${fx(v / 1000, 3)}`],
+        `m<sub>max</sub> = ${s.cmax.toLocaleString('fr-FR')} × ${fx(v / 1000, 3)} = <b>${fr(s.cmax * v / 1000)} g</b>.`);
+    },
+
+    // Énigme 4 : la solution sera-t-elle saturée ?
+    () => {
+      const m = pick([10, 15, 20, 12]);
+      const c = m / 0.05;
+      const saturee = c > 360;
+      const repDepot = `Il restera du sel solide (dépôt) : ${fr(c)} g/L dépasserait 360 g/L`;
+      const repDissous = `Tout le sel se dissout : ${fr(c)} g/L est inférieur à 360 g/L`;
+      return qcm(
+        `Pour saler le poisson, un marin verse ${m} g de sel dans 50 mL d'eau (C<sub>max</sub> du sel = 360 g/L). Que va-t-il observer ?`,
+        saturee ? repDepot : repDissous,
+        [saturee ? repDissous : repDepot, "Le sel se transforme en liquide", "L'eau devient bleue"],
+        ["Calcule la concentration qu'on obtiendrait si tout se dissolvait.",
+         `${m} g ÷ 0,050 L = ?`],
+        `Si tout se dissolvait : ${Cm} = ${m} / 0,050 = ${fr(c)} g/L. ` +
+          (saturee
+            ? "C'est plus que 360 g/L : la solution est <b>saturée</b>, il reste un dépôt."
+            : "C'est moins que 360 g/L : <b>tout se dissout</b>, la solution n'est pas saturée."));
+    },
+
+    // Énigme 5 : agir sur une solution saturée
+    () => variante([
+      () => qcm(
+        "Un bassin de Thrinacie contient de l'eau saturée en sel avec un dépôt au fond. Un orage y verse de l'eau de pluie et les vagues agitent le bassin. Que peut-il se passer ?",
+        "le dépôt peut se dissoudre en partie ou totalement",
+        ["le dépôt grossit", "rien ne change jamais", "l'eau ajoutée devient du sel"],
+        ["Plus de solvant = on peut dissoudre plus de soluté."],
+        "En ajoutant du solvant, la masse maximale qu'on peut dissoudre augmente (m<sub>max</sub> = C<sub>max</sub> × V) : le dépôt peut <b>se dissoudre</b>."),
+      () => qcm(
+        "Un marin ajoute encore 5 g de sel dans un bassin déjà saturé (avec dépôt), sans ajouter d'eau. Que devient ce sel ?",
+        "il ne se dissout pas : il rejoint le dépôt",
+        ["il se dissout et la concentration augmente", "il fait fondre le dépôt", "il se transforme en gaz"],
+        ["Une solution saturée a déjà atteint C<sub>max</sub>."],
+        "La solution est déjà à C<sub>max</sub> : le sel ajouté <b>ne se dissout pas</b>, il s'ajoute au dépôt."),
+      () => qcm(
+        "Pour saler les poissons, un marin filtre l'eau d'un bassin saturé de Thrinacie afin d'enlever les cristaux. Quelle est la concentration en sel du liquide obtenu (à 20 °C) ?",
+        "environ 360 g/L, la concentration maximale",
+        ["0 g/L car on a retiré le sel", "plus de 360 g/L", "on ne peut pas le savoir"],
+        ["Le liquide au-dessus du dépôt est saturé…"],
+        "Le liquide d'une solution saturée a une concentration égale à <b>C<sub>max</sub> ≈ 360 g/L</b>, que le dépôt soit gros ou petit.")
+    ])
+  ]
+},
+
+// ---------------------------------------------------------------------
 // ÉPREUVE 8 : ITHAQUE — étalonnage par masse volumique
 // ---------------------------------------------------------------------
 {
   nom: 'Ithaque',
+  notion: "L'étalonnage par la masse volumique",
   lieu: "Île d'Ithaque, mer Ionienne",
   titre: "L'hydromel des prétendants",
   lettre: 'E',
+  nb: 5,                 // épreuve finale : 5 énigmes
+  obligatoires: [2, 3],  // les énigmes 3 et 4 (lectures graphiques) sont toujours posées
   recit: "Sur Thrinacie, les compagnons ont mangé les vaches du Soleil : Zeus a foudroyé le navire. Seul survivant, retenu sept ans par Calypso, ramené par les Phéaciens, Ulysse arrive enfin à Ithaque, déguisé en mendiant. Les prétendants ont-ils falsifié l'hydromel du palais ? On mesure des masses volumiques et on utilise une courbe d'étalonnage.",
   cours: `
     <h4>Mesurer une masse volumique</h4>
@@ -2342,7 +2574,7 @@ const LEVELS = [
     <div class="exemple"><b>Exemple :</b> 10,0 mL d'hydromel pèsent 10,36 g.<br>
       ρ = 10,36 / 0,0100 = <b>1 036 g/L</b>.</div>
     <h4>La courbe d'étalonnage</h4>
-    <p>On mesure ρ pour des solutions <b>étalons</b> de concentrations connues, puis on trace ρ en fonction de C<sub>m</sub>. Pour l'eau sucrée, on obtient une droite : ρ augmente quand C<sub>m</sub> augmente.</p>
+    <p>On mesure ρ pour des hydromels <b>étalons</b> de concentrations connues (0, 50, 100, 150 et 200 g/L), puis on trace la masse volumique ρ en fonction de la concentration en masse C<sub>m</sub>. On obtient une droite : ρ augmente quand C<sub>m</sub> augmente.</p>
     <p>À C<sub>m</sub> = 0 g/L, c'est de l'eau pure : ρ ≈ 998 g/L. La droite ne passe donc pas par l'origine.</p>
     <h4>Lire la concentration d'une solution inconnue</h4>
     <ol>
@@ -2350,20 +2582,25 @@ const LEVELS = [
       <li>Je vais horizontalement jusqu'à la droite.</li>
       <li>Je descends verticalement et je lis C<sub>m</sub> sur l'axe horizontal.</li>
     </ol>
+    <div class="exemple"><b>Suite de l'exemple :</b> l'hydromel a une masse volumique ρ = 1 036 g/L.
+      ① On part de 1 036 g/L sur l'axe vertical et on va horizontalement jusqu'à la droite.
+      ② On descend verticalement jusqu'à l'axe horizontal : on lit <b>C<sub>m</sub> ≈ 100 g/L</b>.<br>
+      Cet hydromel contient donc environ <b>100 g de sucre de miel par litre</b>.</div>
+    ${courbe(1036, true)}
     <p>Si ρ est en dehors de la courbe, on ne prolonge pas au hasard : on dilue la solution d'un facteur connu.</p>`,
   slots: [
     // Énigme 1 : principe de la mesure et de la courbe
     () => variante([
       () => qcm(
-        "Pour mesurer la masse volumique d'un hydromel, on :",
+        "Pour mesurer la masse volumique de l'hydromel du palais, Télémaque, le fils d'Ulysse :",
         "pèse un volume connu précisément (pipette jaugée) puis on calcule ρ = m / V",
         ["mesure seulement sa température",
-         "pèse le sucre et on divise par le volume d'eau",
-         "goûte et on compare au miel"],
+         "pèse le sucre et divise par le volume d'eau",
+         "goûte et compare au miel"],
         ["ρ = m(solution) / V(solution)"],
         "On prélève un volume précis, on le pèse, puis <b>ρ = m / V</b>."),
       () => qcm(
-        "Sur la courbe d'étalonnage ci-dessous, pourquoi la droite ne passe-t-elle pas par l'origine ?",
+        "Télémaque a tracé la courbe d'étalonnage ci-dessous avec des hydromels étalons. Pourquoi la droite ne passe-t-elle pas par l'origine ?",
         "car pour C<sub>m</sub> = 0 g/L, c'est de l'eau pure, de masse volumique 998 g/L",
         ["car la mesure est fausse",
          "car le sucre n'a pas de masse",
@@ -2372,7 +2609,7 @@ const LEVELS = [
         "Sans sucre, il reste l'eau : ρ ≈ 998 g/L. La masse volumique <b>augmente</b> ensuite avec la concentration en sucre.",
         { vis: courbe() }),
       () => qcm(
-        "D'après la courbe d'étalonnage ci-dessous, quand la concentration en sucre augmente, la masse volumique :",
+        "D'après la courbe d'étalonnage de Télémaque ci-dessous, quand la concentration en sucre d'un hydromel augmente, sa masse volumique :",
         "augmente",
         ["diminue", "reste la même", "devient nulle"],
         ["Regarde le sens de la droite de gauche à droite."],
@@ -2386,7 +2623,7 @@ const LEVELS = [
       const V = pick([10, 20]);
       const m = rho(c) * V / 1000;
       return num(
-        `Un échantillon de V = ${fx(V, 1)} mL d'hydromel a une masse m = ${fx(m, 2)} g. Calcule sa masse volumique en g/L.`,
+        `Télémaque prélève V = ${fx(V, 1)} mL de l'hydromel du palais et le pèse : m = ${fx(m, 2)} g. Calcule sa masse volumique en g/L.`,
         rho(c), 'g/L',
         ["ρ = m / V avec V en litres.",
          `V = ${fx(V / 1000, 4)} L ; ρ = ${fx(m, 2)} ÷ ${fx(V / 1000, 4)}`],
@@ -2434,7 +2671,7 @@ const LEVELS = [
         ["La courbe n'est fiable qu'entre le premier et le dernier étalon."],
         "En dehors de la gamme, on <b>dilue</b> l'échantillon pour revenir dans le domaine de la courbe, puis on tient compte du facteur de dilution."),
       () => qcm(
-        "Pourquoi prépare-t-on plusieurs solutions étalons plutôt qu'une seule ?",
+        "Pour tracer sa courbe, Télémaque prépare cinq hydromels étalons plutôt qu'un seul. Pourquoi ?",
         "pour tracer la courbe et vérifier la relation entre ρ et C<sub>m</sub> sur tout le domaine",
         ["parce qu'une seule solution suffit toujours",
          "pour gaspiller moins de sucre",
@@ -2450,6 +2687,43 @@ const LEVELS = [
         ["Lis la concentration correspondant à 1 013 g/L sur la courbe."],
         "ρ = 1 013 g/L correspond à C<sub>m</sub> ≈ 40 g/L, bien moins que 150 g/L : Antinoos a <b>coupé son hydromel avec de l'eau</b> !",
         { vis: courbe() })
+    ]),
+
+    // Énigme 6 : autres lectures graphiques
+    () => variante([
+      // lecture « à l'envers » : de la concentration vers la masse volumique
+      () => {
+        const c = pick([30, 70, 90, 130, 180]);
+        const r = Math.round(rho(c));
+        return num(
+          `Pénélope veut servir à Ulysse un hydromel à ${c} g/L de sucre. Lis sur la courbe la masse volumique que Télémaque devra mesurer pour en être sûr.`,
+          r, 'g/L',
+          [`Cette fois, pars de ${c} g/L sur l'axe <b>horizontal</b>, monte jusqu'à la droite…`,
+           "…puis va horizontalement jusqu'à l'axe vertical et lis ρ."],
+          `On part de ${Cm} = ${c} g/L, on monte jusqu'à la droite puis on lit sur l'axe vertical : <b>ρ ≈ ${r.toLocaleString('fr-FR')} g/L</b> (± 3 g/L accepté).`,
+          { vis: courbe(), tolA: 3 });
+      },
+      // lecture puis comparaison à un hydromel normal (150 g/L)
+      () => {
+        const c = pick([40, 80, 150, 190]);
+        const r = Math.round(rho(c));
+        const lu = Math.round((r - 998) / 0.38);
+        const verdicts = {
+          coupe: `il contient environ ${lu} g/L de sucre : il a été coupé avec de l'eau`,
+          normal: `il contient environ ${lu} g/L de sucre : il est conforme`,
+          riche: `il contient environ ${lu} g/L de sucre : il est plus riche en miel que la normale`
+        };
+        const cle = c < 140 ? 'coupe' : (c > 160 ? 'riche' : 'normal');
+        return qcm(
+          `Un hydromel normal contient 150 g/L de sucre. Celui du prétendant Eurymaque a une masse volumique ρ = ${r.toLocaleString('fr-FR')} g/L. Lis la courbe et conclus.`,
+          verdicts[cle],
+          [...Object.keys(verdicts).filter(k => k !== cle).map(k => verdicts[k]),
+           "on ne peut rien conclure avec une courbe d'étalonnage"],
+          [`Lis la concentration correspondant à ρ = ${r.toLocaleString('fr-FR')} g/L.`,
+           "Compare ensuite cette concentration à 150 g/L."],
+          `ρ = ${r.toLocaleString('fr-FR')} g/L correspond à ${Cm} ≈ ${lu} g/L. Comparé aux 150 g/L d'un hydromel normal : <b>${verdicts[cle].split(' : ')[1]}</b>.`,
+          { vis: courbe() });
+      }
     ])
   ]
 }
@@ -2484,14 +2758,14 @@ const NODES = [
   { x: 366, y: 141, nom: 'Lestrygons',
     txt: "Chez les Lestrygons, géants mangeurs d'hommes, onze navires sont écrasés sous des rochers. Seul le navire d'Ulysse s'échappe." },
   { x: 448, y: 147, lvl: 4 },                                    // Circé
-  { x: 481, y: 168, lvl: 5 },                                    // Sirènes
-  { x: 518, y: 232, lvl: 6 },                                    // Charybde et Scylla
+  { x: 481, y: 168, nom: 'Sirènes',
+    txt: "Ulysse bouche les oreilles de ses compagnons avec de la cire et se fait attacher au mât : il entend le chant des Sirènes sans se jeter à la mer. Le navire passe sans encombre." },
+  { x: 518, y: 232, lvl: 5 },                                    // Charybde et Scylla
   { x: 519, y: 252 },
   { x: 512, y: 283 },
-  { x: 470, y: 281, nom: 'Thrinacie',
-    txt: "Sur Thrinacie (la Sicile), les compagnons affamés mangent les vaches sacrées d'Hélios. Zeus foudroie le navire : Ulysse est le seul survivant." },
+  { x: 470, y: 281, lvl: 6 },                                    // Thrinacie
   { x: 483, y: 300, nom: 'Ogygie (Calypso)',
-    txt: "Naufragé, Ulysse échoue sur l'île d'Ogygie, où la nymphe Calypso le retient pendant sept ans." },
+    txt: "Affamés, les compagnons ont mangé les vaches sacrées d'Hélios ! Dès que le navire quitte Thrinacie, Zeus le foudroie : seul Ulysse survit, accroché à un mât. Il dérive neuf jours jusqu'à l'île d'Ogygie, où la nymphe Calypso le retient pendant sept ans." },
   { x: 607, y: 194, nom: 'Schérie (Phéaciens)',
     txt: "Libéré sur ordre des dieux, Ulysse construit un radeau ; Poséidon le brise. Les Phéaciens (Corfou) l'accueillent et le ramènent enfin chez lui." },
   { x: 640, y: 222, lvl: 7 }                                     // Ithaque
@@ -2507,8 +2781,8 @@ const LBL = [
   [14, 10, 'start', 'Cyclopes'],
   [-13, -6, 'end', 'Éole'],
   [-13, 4, 'end', 'Circé'],
-  [0, -15, 'middle', 'Sirènes'],
   [14, -4, 'start', 'Charybde & Scylla'],
+  [-13, 4, 'end', 'Thrinacie'],
   [13, 6, 'start', 'ITHAQUE']
 ];
 
@@ -2520,7 +2794,7 @@ let sailing = false;   // vrai pendant l'animation du bateau
 let tick = null;       // minuteur du compteur
 
 function newState() {
-  return {
+  const etat = {
     t0: Date.now(),    // début de la partie
     tEnd: null,        // fin de la partie
     pos: 0,            // position du bateau dans NODES
@@ -2528,12 +2802,14 @@ function newState() {
     pending: { from: 0, to: LV_NODE[0] }, // navigation à faire
     finalOk: false,
     sent: false,
+    lettres: melangerLettres(), // lettre gagnée à chaque épreuve (dans le désordre)
     lv: LEVELS.map((L, i) => ({
       status: i === 0 ? 'open' : 'locked', // locked / open / done
+      choix: null,     // énigmes de la réserve utilisées (rempli juste après)
       qs: null,        // version actuelle de chaque énigme
       qi: 0,           // énigme en cours
       pts: 0,
-      max: L.slots.length * 100,
+      max: 0,
       first: 0,        // énigmes réussies du premier coup
       refaites: 0,     // nouvelles versions données après une erreur
       ratees: 0,       // énigmes ratées dans toutes leurs versions
@@ -2542,6 +2818,12 @@ function newState() {
       time: 0
     }))
   };
+  // tirage des énigmes de chaque épreuve
+  etat.lv.forEach((l, i) => {
+    l.choix = choisirEnigmes(LEVELS[i]);
+    l.max = l.choix.length * 100;
+  });
+  return etat;
 }
 
 function save() {
@@ -2597,7 +2879,7 @@ function updateBar() {
   $('#pts').textContent = totalPts();
   $('#lettresBar').innerHTML = CODE.split('').map((c, i) => {
     const gagnee = S && S.lv[i].status === 'done';
-    return gagnee ? `<b>${c}</b>` : `<b class="vide">·</b>`;
+    return gagnee ? `<b>${S.lettres[i]}</b>` : `<b class="vide">·</b>`;
   }).join('');
 }
 
@@ -2710,7 +2992,7 @@ function drawMap() {
     if (st === 'done') {
       info = `✓ ${l.pts}/${l.max} pts · ${annees(l.time)}`;
     } else if (st === 'open') {
-      info = `⚓ Escale ouverte · ${L.slots.length} énigmes`;
+      info = `⚓ Escale ouverte · ${l.choix.length} énigmes`;
     } else {
       info = '🔒 Verrouillée';
     }
@@ -2864,7 +3146,8 @@ function openLevel(i) {
 
   // première ouverture : on fabrique la première version de chaque énigme
   if (!l.qs) {
-    l.qs = LEVELS[i].slots.map((_, k) => fabriquer(i, k, null));
+    l.qs = l.choix.map(k => fabriquer(i, k, null));
+    dbg("Énigmes tirées dans la réserve (numéros) :", l.choix.map(k => k + 1), 'sur', LEVELS[i].slots.length);
     l.qi = 0;
     dbg("Énigmes générées pour l'épreuve", i + 1, l.qs);
   }
@@ -2982,7 +3265,7 @@ function renderQ() {
     <div id="ans">${answerUI(q)}</div>
     <div class="qbtns" id="qbtns">
       <button class="btn" id="bVal">Valider</button>
-      <button class="btn ghost" id="bHint">🦉 Coup de pouce d'Athéna (−10 pts)</button>
+      <button class="btn ghost" id="bHint">🦉 Coup de pouce d'Athéna (−${COUT_INDICE[Math.min(q.hu, COUT_INDICE.length - 1)]} pts)</button>
       <button class="btn ghost" id="bLire">🔊 Écouter l'énigme</button>
     </div>
     <div id="hints"></div>
@@ -3026,6 +3309,8 @@ function indice() {
   $('#hints').insertAdjacentHTML('beforeend', `<div class="hint">🦉 ${q.h[q.hu - 1]}</div>`);
   if (q.hu >= q.h.length) {
     $('#bHint').disabled = true;
+  } else {
+    $('#bHint').textContent = `🦉 Second coup de pouce d'Athéna (−${COUT_INDICE[1]} pts)`;
   }
 }
 
@@ -3094,8 +3379,8 @@ function valider() {
   }
 
   if (r.ok) {
-    // points selon la version, moins 10 par coup de pouce (minimum 10)
-    const pts = Math.max(10, POINTS[q.v] - 10 * q.hu);
+    // points selon la version, moins le coût des coups de pouce (minimum 10)
+    const pts = Math.max(10, POINTS[q.v] - coutIndices(q.hu));
     q.res = { ok: true, pts };
     l.pts += pts;
     if (q.v === 1) {
@@ -3176,7 +3461,7 @@ function finQ(q) {
   $('#bNext').onclick = () => {
     if (!q.res.ok && q.v < VERSIONS_MAX) {
       // nouvelle version de la même énigme
-      l.qs[l.qi] = fabriquer(S.cur, l.qi, q);
+      l.qs[l.qi] = fabriquer(S.cur, l.choix[l.qi], q);
       l.refaites++;
       dbg('Nouvelle version générée :', l.qs[l.qi]);
     } else if (last) {
@@ -3211,7 +3496,7 @@ function finNiveau() {
   $('#biTexte').textContent = i < LEVELS.length - 1
     ? "Les dieux te confient une lettre du code secret. Garde-la précieusement !"
     : "Dernière lettre ! Il est temps de te présenter à Pénélope.";
-  $('#biLettre').textContent = LEVELS[i].lettre;
+  $('#biLettre').textContent = S.lettres[i];
   $('#biRes').innerHTML = `
     <div><b>${l.pts}/${l.max}</b>points</div>
     <div><b>${Math.round(l.pts / l.max * 100)} %</b>de réussite</div>
@@ -3340,7 +3625,235 @@ function showRes() {
   if (S.sent) {
     $('#envoiFb').innerHTML = '<div class="fb ok">✓ Tes résultats ont déjà été envoyés au professeur.</div>';
   }
+
+  // on prépare la bibliothèque PDF pendant que l'élève remplit le formulaire
+  chargerHtml2pdf().catch(err => dbg('Préchargement PDF impossible :', err.message));
 }
+
+// =====================================================================
+//  CARNET DE BORD EN PDF
+//  Bilan de l'élève + rappels de cours I à VIII + mémo des formules (IX)
+//  Bibliothèque html2pdf chargée seulement quand on en a besoin.
+// =====================================================================
+const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+const ROMAINS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+let html2pdfPromesse = null;
+let carnetAutoFait = false; // le téléchargement automatique n'a lieu qu'une fois
+
+function chargerHtml2pdf() {
+  if (window.html2pdf) {
+    return Promise.resolve();
+  }
+  if (!html2pdfPromesse) {
+    dbg('Chargement de la bibliothèque PDF…');
+    html2pdfPromesse = new Promise((ok, echec) => {
+      const s = document.createElement('script');
+      s.src = HTML2PDF_URL;
+      s.onload = () => {
+        dbg('Bibliothèque PDF chargée');
+        ok();
+      };
+      s.onerror = () => {
+        html2pdfPromesse = null;
+        echec(new Error('la bibliothèque PDF ne s\'est pas chargée (connexion ?)'));
+      };
+      document.head.appendChild(s);
+    });
+  }
+  return html2pdfPromesse;
+}
+
+// protège le texte tapé par l'élève
+function esc(t) {
+  return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+}
+
+// découpe un rappel de cours en blocs (un bloc par sous-titre h4),
+// numérote les sous-titres 1., 2., 3.…
+function blocsDuCours(html) {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html.replace(/<details/g, '<details open');
+  const blocs = [];
+  let num = 0;
+  [...tmp.children].forEach(enfant => {
+    if (enfant.tagName === 'H4') {
+      num++;
+      enfant.innerHTML = `${num}. ${enfant.innerHTML}`;
+      blocs.push([]);
+    }
+    if (!blocs.length) {
+      blocs.push([]);
+    }
+    blocs[blocs.length - 1].push(enfant.outerHTML);
+  });
+  return blocs.map(b => b.join('\n'));
+}
+
+function construireCarnet(eleve) {
+  const b = bilan();
+  const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const verdict = b.ans < ANS_MAX
+    ? `Ulysse est rentré à Ithaque en ${annees(b.temps)}, avant les 20 ans. Bravo !`
+    : `Ulysse est rentré à Ithaque en ${annees(b.temps)}, après les 20 ans : Pénélope a dû patienter !`;
+
+  const lignes = LEVELS.map((L, i) => {
+    const l = S.lv[i];
+    return `
+      <tr>
+        <td style="text-align:left">${ROMAINS[i]}. ${L.nom}</td>
+        <td>${l.pts}/${l.max}</td>
+        <td>${Math.round(l.pts / l.max * 100)} %</td>
+        <td>${l.first}/${l.qs ? l.qs.length : 0}</td>
+        <td>${l.refaites}</td>
+        <td>${annees(l.time)}</td>
+        <td>${duree(l.time)}</td>
+      </tr>`;
+  }).join('');
+
+  let html = `
+    <div class="frise"></div>
+    <div class="c-titre">L'Odyssée des Solutions</div>
+    <div class="c-sous">Carnet de bord · Les solutions aqueuses</div>
+    <div class="c-eleve">
+      <b>${esc(eleve.prenom)} ${esc(eleve.initiale)}.</b> · Classe : <b>${esc(eleve.classe)}</b> · ${date}
+    </div>
+
+    <div class="pdf-bloc">
+      <h2>Mon voyage</h2>
+      <p class="c-verdict">${verdict}</p>
+      <div class="resgrid">
+        <div><b>${b.pts}/${b.max}</b>points</div>
+        <div><b>${b.pct} %</b>de réussite</div>
+        <div><b>${b.pctFirst} %</b>réussies du 1<sup>er</sup> coup</div>
+        <div><b>${annees(b.temps)}</b>de voyage (${duree(b.temps)})</div>
+      </div>
+      <table class="tableau">
+        <tr><th>Épreuve</th><th>Points</th><th>Réussite</th><th>1<sup>er</sup> coup</th><th>Refaites</th><th>Années</th><th>Temps réel</th></tr>
+        ${lignes}
+      </table>
+    </div>
+
+    <h2>Rappels de cours</h2>
+    <div class="cours">`;
+
+  // I à VIII : un rappel de cours par épreuve
+  LEVELS.forEach((L, i) => {
+    const blocs = blocsDuCours(L.cours);
+    blocs.forEach((bloc, k) => {
+      const entete = k === 0
+        ? `<h3><span class="c-num">${ROMAINS[i]}</span>${L.notion}</h3>
+           <p class="c-escale">Escale ${i + 1} : ${L.nom} — ${L.titre}</p>`
+        : '';
+      html += `<div class="pdf-bloc">${entete}${bloc}</div>`;
+    });
+  });
+
+  // IX : mémo des formules (contenu du parchemin d'Athéna)
+  const memo = $('#memo').cloneNode(true);
+  memo.querySelectorAll('h3, button').forEach(x => x.remove());
+  html += `
+      <div class="pdf-bloc">
+        <h3><span class="c-num">${ROMAINS[LEVELS.length]}</span>Mémo des formules</h3>
+        <p class="c-escale">Le parchemin d'Athéna, à garder sous la main</p>
+        ${memo.innerHTML}
+      </div>
+    </div>`;
+
+  const el = document.createElement('div');
+  el.className = 'carnet';
+  el.innerHTML = html;
+  return el;
+}
+
+function nomFichier(eleve) {
+  const propre = t => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_|_$/g, '');
+  return `Odyssee_carnet_${propre(eleve.prenom)}_${propre(eleve.initiale)}_${propre(eleve.classe)}.pdf`;
+}
+
+// décore chaque page : marges couleur papyrus, frise en haut et en bas, numéro de page
+function decorerPages(pdf, eleve) {
+  const n = pdf.internal.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    pdf.setPage(i);
+    pdf.setFillColor(244, 231, 201);
+    pdf.rect(0, 0, 210, 12, 'F');
+    pdf.rect(0, 285, 210, 12, 'F');
+    pdf.rect(0, 0, 10, 297, 'F');
+    pdf.rect(200, 0, 10, 297, 'F');
+    pdf.setFillColor(126, 47, 27);
+    pdf.rect(0, 0, 210, 4, 'F');
+    pdf.rect(0, 293, 210, 4, 'F');
+    pdf.setFillColor(184, 144, 31);
+    pdf.rect(0, 4, 210, .8, 'F');
+    pdf.rect(0, 292.2, 210, .8, 'F');
+    pdf.setFont('times', 'italic');
+    pdf.setFontSize(9);
+    pdf.setTextColor(90, 70, 50);
+    pdf.text(`L'Odyssée des Solutions · Carnet de bord de ${eleve.prenom} ${eleve.initiale}. · page ${i} / ${n}`, 105, 289.5, { align: 'center' });
+  }
+}
+
+// secours : on imprime le carnet (l'élève choisit « Enregistrer en PDF »)
+function imprimerCarnet(el) {
+  const zone = $('#impression');
+  zone.innerHTML = '';
+  zone.appendChild(el);
+  document.body.classList.add('impression');
+  window.print();
+  setTimeout(() => {
+    document.body.classList.remove('impression');
+    zone.innerHTML = '';
+  }, 1000);
+}
+
+async function telechargerCarnet(eleve) {
+  dbg('Création du carnet de bord pour', eleve);
+  $('#pdfFb').innerHTML = '<div class="hint">📄 Préparation de ton carnet de bord (PDF)… patiente quelques secondes.</div>';
+  const el = construireCarnet(eleve);
+  try {
+    await chargerHtml2pdf();
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+    const options = {
+      margin: [12, 10, 12, 10],
+      filename: nomFichier(eleve),
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, backgroundColor: '#f4e7c9', useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['avoid-all', 'css'] }
+    };
+    await html2pdf().set(options).from(el).toPdf().get('pdf').then(pdf => decorerPages(pdf, eleve)).save();
+    dbg('Carnet téléchargé :', options.filename);
+    $('#pdfFb').innerHTML = `<div class="fb ok">✓ Ton carnet de bord a été téléchargé (${esc(options.filename)}). Regarde dans tes téléchargements.</div>`;
+  } catch (err) {
+    console.error('[ODYSSÉE] Échec du PDF :', err);
+    $('#pdfFb').innerHTML = `
+      <div class="fb ko">
+        Le PDF n'a pas pu être créé (${esc(err.message)}).
+        <button class="btn ghost" id="bImprimer" style="margin-top:.4rem">🖨️ Imprimer mon carnet (choisir « Enregistrer en PDF »)</button>
+      </div>`;
+    $('#bImprimer').onclick = () => imprimerCarnet(construireCarnet(eleve));
+  }
+}
+
+// infos de l'élève lues dans le formulaire
+function eleveDuFormulaire() {
+  return {
+    prenom: $('#fPrenom').value.trim(),
+    initiale: $('#fInit').value.trim().charAt(0).toUpperCase(),
+    classe: $('#fClasse').value.trim()
+  };
+}
+
+$('#bCarnet').onclick = () => {
+  const eleve = eleveDuFormulaire();
+  if (!eleve.prenom || !eleve.initiale || !eleve.classe) {
+    $('#pdfFb').innerHTML = '<div class="fb ko">Remplis d\'abord ton prénom, la première lettre de ton nom et ta classe (au-dessus).</div>';
+    return;
+  }
+  telechargerCarnet(eleve);
+};
 
 // =====================================================================
 //  ENVOI DES RÉSULTATS AU WORKER
@@ -3411,6 +3924,12 @@ $('#fEnvoi').onsubmit = async e => {
         L'envoi a échoué (${err.message}). Vérifie ta connexion et réessaie.
         Si cela ne marche toujours pas, montre cet écran à ton professeur.
       </div>`;
+  }
+
+  // téléchargement automatique du carnet de bord (une seule fois)
+  if (!carnetAutoFait) {
+    carnetAutoFait = true;
+    telechargerCarnet({ prenom: payload.prenom, initiale: payload.initiale, classe: payload.classe });
   }
 };
 
