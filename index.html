@@ -3403,7 +3403,8 @@ function renderQ() {
   if (inp) {
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        valider();
+        e.preventDefault();   // ← ligne à ajouter
+         valider();
       }
     });
   }
