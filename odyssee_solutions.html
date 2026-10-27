@@ -1,0 +1,2930 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L'Odyssée des Solutions</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   COULEURS ET POLICES (modifiables ici)
+   ========================================================= */
+:root {
+  --papyrus: #f4e7c9;
+  --papyrus2: #e9d6a8;
+  --carte: #efe0b8;
+  --encre: #2b2118;
+  --encre2: #5a4632;
+  --terre: #a8452a;
+  --terre2: #7e2f1b;
+  --or: #b8901f;
+  --egee: #1d4f7a;
+  --olive: #5f6b2e;
+  --ok: #3f6b2a;
+  --ko: #a8302a;
+  --fs: 18px;
+  --font: 'EB Garamond', Georgia, serif;
+  --titre: 'Cinzel', 'Times New Roman', serif;
+}
+
+/* Mode contraste élevé */
+body.contrast {
+  --papyrus: #ffffff;
+  --papyrus2: #f0f0f0;
+  --carte: #fff8e0;
+  --encre: #000;
+  --encre2: #111;
+  --terre: #8a1c00;
+  --terre2: #5c1200;
+  --or: #7a5c00;
+  --egee: #00306b;
+  --ok: #0b5d00;
+  --ko: #9b0000;
+}
+
+/* Mode police lisible (dyslexie) */
+body.legible {
+  --font: 'Atkinson Hyperlegible', Arial, sans-serif;
+  --titre: 'Atkinson Hyperlegible', Arial, sans-serif;
+  letter-spacing: .03em;
+  word-spacing: .12em;
+}
+body.legible .qtext,
+body.legible p {
+  line-height: 1.8;
+}
+
+/* =========================================================
+   MISE EN PAGE GÉNÉRALE
+   ========================================================= */
+* {
+  box-sizing: border-box;
+}
+html {
+  font-size: var(--fs);
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  color: var(--encre);
+  background: var(--papyrus);
+  background-image:
+    radial-gradient(ellipse at top, rgba(255,255,255,.55), transparent 60%),
+    radial-gradient(ellipse at bottom, rgba(168,69,42,.08), transparent 60%);
+  min-height: 100vh;
+  line-height: 1.55;
+}
+
+/* Frise grecque (méandre) */
+.frise {
+  height: 22px;
+  background-color: var(--terre2);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='22'><path d='M0 19H4V3H24V15H10V9H18V12' fill='none' stroke='%23e9c46a' stroke-width='2.4' stroke-linecap='square'/></svg>");
+  background-repeat: repeat-x;
+  background-position: center;
+}
+
+/* Barre du haut */
+header.barre {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--papyrus2);
+  border-bottom: 2px solid var(--terre2);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.barre .in {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: .45rem 1rem;
+  max-width: 1150px;
+  margin: auto;
+}
+.logo {
+  font-family: var(--titre);
+  font-weight: 700;
+  color: var(--terre2);
+  font-size: 1.05rem;
+  letter-spacing: .06em;
+}
+.stats {
+  display: flex;
+  gap: .9rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: .92rem;
+}
+.stats span {
+  background: rgba(255,255,255,.55);
+  border: 1px solid var(--or);
+  border-radius: 999px;
+  padding: .1rem .65rem;
+  white-space: nowrap;
+}
+.outils {
+  display: flex;
+  gap: .3rem;
+  flex-wrap: wrap;
+}
+.outils button {
+  font: inherit;
+  font-size: .8rem;
+  padding: .25rem .5rem;
+  border: 1px solid var(--encre2);
+  background: #fffaf0;
+  color: var(--encre);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.outils button[aria-pressed="true"] {
+  background: var(--egee);
+  color: #fff;
+  border-color: var(--egee);
+}
+
+main {
+  max-width: 1150px;
+  margin: auto;
+  padding: 1rem;
+}
+
+/* Écrans (un seul visible à la fois) */
+.screen {
+  display: none;
+}
+.screen.on {
+  display: block;
+  animation: fade .35s ease;
+}
+@keyframes fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+h1, h2, h3 {
+  font-family: var(--titre);
+  color: var(--terre2);
+  letter-spacing: .04em;
+  line-height: 1.25;
+}
+h1 {
+  font-size: 2rem;
+  text-align: center;
+  margin: .4rem 0;
+}
+.sous {
+  text-align: center;
+  font-style: italic;
+  color: var(--encre2);
+  margin-top: 0;
+}
+
+/* Cadre « papier ancien » */
+.carte-papier {
+  background: var(--carte);
+  border: 2px solid var(--encre2);
+  border-radius: 6px;
+  padding: 1.2rem 1.4rem;
+  box-shadow: 4px 5px 0 rgba(43,33,24,.18);
+  position: relative;
+}
+.carte-papier:before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(90,70,50,.35);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+/* Boutons */
+.btn {
+  font-family: var(--titre);
+  font-weight: 700;
+  font-size: .95rem;
+  letter-spacing: .05em;
+  background: var(--terre);
+  color: #fff8e8;
+  border: 2px solid var(--terre2);
+  border-radius: 6px;
+  padding: .6rem 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--terre2);
+  transition: transform .1s;
+}
+.btn:hover {
+  filter: brightness(1.07);
+}
+.btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--terre2);
+}
+.btn.ghost {
+  background: #fffaf0;
+  color: var(--encre);
+  border-color: var(--encre2);
+  box-shadow: 0 3px 0 var(--encre2);
+  font-family: var(--font);
+  font-weight: 600;
+}
+.btn.egee {
+  background: var(--egee);
+  border-color: #123553;
+  box-shadow: 0 3px 0 #123553;
+}
+.btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 3px solid var(--or);
+  outline-offset: 3px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Accueil */
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 1.2rem;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .intro-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.regles li {
+  margin: .25rem 0;
+}
+.centre {
+  text-align: center;
+}
+
+/* =========================================================
+   CARTE
+   ========================================================= */
+.mapwrap {
+  position: relative;
+  border: 3px double var(--encre2);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #cfe0e6;
+}
+#carte {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.terre {
+  fill: #e6cf98;
+  stroke: #8a6a3b;
+  stroke-width: 1;
+}
+.ile {
+  fill: #e6cf98;
+  stroke: #8a6a3b;
+  stroke-width: .8;
+}
+.lblmer {
+  font-family: 'Cinzel', serif;
+  fill: #4f7d93;
+  font-size: 12px;
+  letter-spacing: 3px;
+  font-style: italic;
+}
+.lblterre {
+  font-family: 'Cinzel', serif;
+  fill: #8a6a3b;
+  font-size: 12px;
+  letter-spacing: 4px;
+}
+.etape text {
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: #f6ecd2;
+  stroke-width: 3px;
+  fill: var(--encre);
+}
+.etape .med {
+  stroke: var(--encre);
+  stroke-width: 1.5;
+}
+.etape.locked .med { fill: #bfb4a0; }
+.etape.open .med   { fill: var(--or); animation: pulse 1.6s infinite; }
+.etape.done .med   { fill: var(--olive); }
+.etape.open {
+  cursor: pointer;
+}
+@keyframes pulse {
+  0%, 100% { stroke-width: 1.5; }
+  50%      { stroke-width: 4; stroke: var(--terre); }
+}
+.etape .num {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  fill: #fff;
+  stroke: none;
+  font-weight: 700;
+}
+.escale circle {
+  fill: #fff8e8;
+  stroke: var(--terre2);
+  stroke-width: 1.2;
+}
+.escale text {
+  font-family: 'EB Garamond', serif;
+  font-style: italic;
+  font-size: 9.5px;
+  fill: var(--encre2);
+  paint-order: stroke;
+  stroke: #f6ecd2;
+  stroke-width: 2.5px;
+}
+#sillage {
+  fill: none;
+  stroke: var(--terre);
+  stroke-width: 2.2;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+
+/* Journal de bord (liste des escales sous la carte) */
+.journal {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: .5rem;
+}
+.journal button {
+  font: inherit;
+  text-align: left;
+  padding: .55rem .7rem;
+  border-radius: 6px;
+  border: 1.5px solid var(--encre2);
+  background: #fffaf0;
+  color: var(--encre);
+  cursor: pointer;
+}
+.journal button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+.journal button.done {
+  background: #eef0dc;
+  border-color: var(--olive);
+}
+.journal button.open {
+  background: #fff3cf;
+  border-color: var(--or);
+  box-shadow: 0 0 0 2px var(--or);
+}
+.journal small {
+  display: block;
+  color: var(--encre2);
+}
+
+/* Fenêtre des escales intermédiaires */
+#escaleModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(30,20,10,.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+#escaleModal.on {
+  display: flex;
+}
+#escaleModal .carte-papier {
+  max-width: 520px;
+}
+
+/* =========================================================
+   ÉPREUVES
+   ========================================================= */
+.lvhead {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.recit {
+  background: rgba(255,255,255,.45);
+  border-left: 5px solid var(--terre);
+  padding: .7rem 1rem;
+  border-radius: 4px;
+  font-style: italic;
+}
+.prog {
+  display: flex;
+  gap: .35rem;
+  margin: .6rem 0;
+}
+.prog i {
+  flex: 1;
+  height: 9px;
+  border-radius: 5px;
+  background: #d8c9a6;
+  border: 1px solid var(--encre2);
+}
+.prog i.ok  { background: var(--olive); }
+.prog i.ko  { background: var(--ko); }
+.prog i.cur { background: var(--or); }
+
+.qtext {
+  font-size: 1.08rem;
+  margin: .4rem 0 .8rem;
+}
+.vis {
+  margin: .6rem 0 1rem;
+  overflow-x: auto;
+}
+
+/* Choix multiples */
+.choice {
+  display: flex;
+  gap: .6rem;
+  align-items: flex-start;
+  padding: .55rem .7rem;
+  margin: .35rem 0;
+  border: 1.5px solid var(--encre2);
+  border-radius: 6px;
+  background: #fffaf0;
+  cursor: pointer;
+}
+.choice:hover {
+  background: #fff3d6;
+}
+.choice input {
+  margin-top: .35rem;
+  transform: scale(1.25);
+  accent-color: var(--terre);
+}
+.choice.barre {
+  opacity: .55;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.choice.bon {
+  background: #e5edd4;
+  border-color: var(--ok);
+}
+
+/* Réponse numérique et listes */
+.numl {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+.numl input,
+select {
+  font: inherit;
+  padding: .4rem .6rem;
+  border: 2px solid var(--encre2);
+  border-radius: 6px;
+  background: #fffef8;
+  color: var(--encre);
+}
+.numl input {
+  width: 9rem;
+}
+.unit {
+  font-weight: 700;
+  color: var(--egee);
+}
+.pl {
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  margin: .45rem 0;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+/* Remise en ordre des étapes */
+.ordre {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ordre li {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  border: 1.5px solid var(--encre2);
+  background: #fffaf0;
+  border-radius: 6px;
+  padding: .45rem .6rem;
+  margin: .35rem 0;
+}
+.ordre li b {
+  font-family: var(--titre);
+  color: var(--terre2);
+  min-width: 1.4rem;
+}
+.ordre li span {
+  flex: 1;
+}
+.ordre button {
+  font: inherit;
+  padding: .15rem .5rem;
+  border-radius: 5px;
+  border: 1px solid var(--encre2);
+  background: #fff;
+  cursor: pointer;
+}
+
+.qbtns {
+  display: flex;
+  gap: .6rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.hint {
+  background: #e8eef6;
+  border: 1.5px dashed var(--egee);
+  border-radius: 6px;
+  padding: .55rem .8rem;
+  margin-top: .6rem;
+}
+.fb {
+  margin-top: .8rem;
+  padding: .7rem .9rem;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.fb.ok {
+  background: #e5edd4;
+  border: 2px solid var(--ok);
+  color: #1f3b12;
+}
+.fb.ko {
+  background: #f6dcd6;
+  border: 2px solid var(--ko);
+  color: #5c1510;
+}
+.expl {
+  margin-top: .6rem;
+  background: rgba(255,255,255,.6);
+  border-left: 4px solid var(--or);
+  padding: .6rem .9rem;
+  border-radius: 4px;
+  font-weight: 400;
+}
+.tableau {
+  border-collapse: collapse;
+  margin: .3rem 0;
+  background: #fffef8;
+}
+.tableau th,
+.tableau td {
+  border: 1px solid var(--encre2);
+  padding: .3rem .7rem;
+  text-align: center;
+}
+.tableau th {
+  background: var(--papyrus2);
+}
+
+/* Tubes de l'échelle de teinte */
+.tubes {
+  display: flex;
+  gap: .9rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  padding: .5rem;
+}
+.tube {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: .85rem;
+  font-weight: 600;
+}
+.tube .verre {
+  width: 34px;
+  height: 110px;
+  border: 2px solid #5d5d5d;
+  border-top: none;
+  border-radius: 0 0 17px 17px;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+.tube .liq {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 78%;
+}
+.tube.inconnu .verre {
+  border-color: var(--terre);
+  border-width: 3px;
+}
+.tube .int {
+  display: none;
+  font-size: .75rem;
+  color: var(--egee);
+}
+.aideVisu .tube .int {
+  display: block;
+}
+.sep {
+  width: 2px;
+  align-self: stretch;
+  background: var(--encre2);
+  margin: 0 .4rem;
+}
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--egee);
+}
+
+/* =========================================================
+   LETTRES, FIN DE JEU, MÉMO
+   ========================================================= */
+.lettres {
+  display: flex;
+  gap: .25rem;
+}
+.lettres b {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.5rem;
+  border: 1px solid var(--or);
+  border-radius: 3px;
+  font-family: 'Cinzel', serif;
+  font-size: .85rem;
+  background: #fffaf0;
+}
+.lettres b.vide {
+  color: transparent;
+}
+.tuiles {
+  display: flex;
+  gap: .6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1rem 0;
+}
+.tuiles span {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3.4rem;
+  font-family: 'Cinzel', serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--terre2);
+  background: linear-gradient(#f9efd6, #e7cf98);
+  border: 2px solid var(--encre2);
+  border-radius: 4px;
+  box-shadow: 2px 3px 0 rgba(0,0,0,.2);
+}
+.resgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: .7rem;
+  margin: 1rem 0;
+}
+.resgrid div {
+  background: #fffaf0;
+  border: 1.5px solid var(--encre2);
+  border-radius: 6px;
+  padding: .7rem;
+  text-align: center;
+}
+.resgrid b {
+  display: block;
+  font-family: var(--titre);
+  font-size: 1.5rem;
+  color: var(--terre2);
+}
+form.envoi {
+  display: grid;
+  gap: .7rem;
+  max-width: 480px;
+}
+form.envoi label {
+  display: grid;
+  gap: .25rem;
+  font-weight: 600;
+}
+form.envoi input {
+  font: inherit;
+  padding: .5rem .7rem;
+  border: 2px solid var(--encre2);
+  border-radius: 6px;
+  background: #fffef8;
+}
+#memo {
+  position: fixed;
+  right: 1rem;
+  top: 5.5rem;
+  width: min(420px, 92vw);
+  max-height: 75vh;
+  overflow: auto;
+  z-index: 40;
+  display: none;
+}
+#memo.on {
+  display: block;
+}
+.memo-f {
+  font-size: 1.1rem;
+  text-align: center;
+  background: #fffef8;
+  border: 1px solid var(--or);
+  border-radius: 6px;
+  padding: .4rem;
+  margin: .4rem 0;
+}
+.hidechrono #chrono {
+  visibility: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="frise" aria-hidden="true"></div>
+
+<!-- =========================================================
+     BARRE DU HAUT : points, chrono, lettres, outils
+     ========================================================= -->
+<header class="barre">
+  <div class="in">
+    <div class="logo">⛵ L'Odyssée des Solutions</div>
+
+    <div class="stats" aria-live="off">
+      <span title="Points">⭐ <b id="pts">0</b> pts</span>
+      <span id="chrono" title="Temps écoulé">⏳ 00:00</span>
+      <span title="Lettres du code secret"><span class="lettres" id="lettresBar"></span></span>
+    </div>
+
+    <div class="outils" role="toolbar" aria-label="Outils d'accessibilité">
+      <button id="tMoins" aria-label="Réduire le texte">A−</button>
+      <button id="tPlus" aria-label="Agrandir le texte">A+</button>
+      <button id="tLisible" aria-pressed="false">Police lisible</button>
+      <button id="tContraste" aria-pressed="false">Contraste</button>
+      <button id="tChrono" aria-pressed="false">Masquer le chrono</button>
+      <button id="tMemo" aria-pressed="false">📜 Mémo</button>
+    </div>
+  </div>
+</header>
+
+<!-- =========================================================
+     MÉMO (aide-mémoire)
+     ========================================================= -->
+<aside id="memo" class="carte-papier" aria-label="Aide-mémoire">
+  <h3 style="margin-top:0">📜 Le parchemin d'Athéna</h3>
+
+  <p>
+    <b>Soluté</b> : espèce dissoute.
+    <b>Solvant</b> : espèce qui dissout (l'eau pour une solution <i>aqueuse</i>), en général majoritaire.
+    <b>Solution</b> = soluté(s) + solvant.
+  </p>
+
+  <div class="memo-f">C<sub>m</sub> = m(soluté) / V(solution)</div>
+  <p style="margin:.2rem 0">
+    C<sub>m</sub> en g/L ; m en g ; V en L.
+    Donc m = C<sub>m</sub> × V et V = m / C<sub>m</sub>.
+  </p>
+  <p style="margin:.2rem 0">
+    <b>Conversions</b> : 1 L = 1 000 mL ; 1 g = 1 000 mg. 250 mL = 0,250 L.
+  </p>
+
+  <p><b>Dilution</b> : la masse de soluté se conserve.</p>
+  <div class="memo-f">C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub></div>
+  <p style="margin:.2rem 0">
+    Facteur de dilution : F = C<sub>mère</sub> / C<sub>fille</sub> = V<sub>fille</sub> / V<sub>mère</sub>.
+  </p>
+
+  <p>
+    <b>Concentration maximale</b> (solubilité) : au-delà, le soluté ne se dissout plus ;
+    la solution est <b>saturée</b> (dépôt solide).
+  </p>
+  <p>
+    <b>Masse volumique</b> : ρ = m(solution) / V(solution). Ne pas confondre avec C<sub>m</sub> !
+  </p>
+  <p>
+    <b>Gamme d'étalonnage</b> : solutions de concentrations connues ;
+    on compare (teinte) ou on lit sur une courbe (masse volumique).
+  </p>
+
+  <button class="btn ghost" onclick="toggleMemo()">Fermer</button>
+</aside>
+
+<main>
+
+<!-- =========================================================
+     ÉCRAN 1 : ACCUEIL
+     ========================================================= -->
+<section id="sIntro" class="screen on">
+  <h1>L'Odyssée des Solutions</h1>
+  <p class="sous">Dix ans d'errance, huit épreuves, un seul retour : Ithaque.</p>
+
+  <div class="intro-grid">
+    <div class="carte-papier">
+      <h2 style="margin-top:0">Chante, ô Muse…</h2>
+      <p>
+        Troie est tombée. Ulysse, roi d'Ithaque, reprend la mer avec ses compagnons.
+        Mais Poséidon, furieux, va semer sa route d'embûches.
+        À chaque escale, une épreuve de <b>chimie des solutions</b> bloque le passage.
+      </p>
+      <p>
+        Réussis chaque épreuve pour faire avancer le navire sur la carte et gagner
+        une <b>lettre du code secret</b>. À Ithaque, ce code te permettra de te faire
+        reconnaître de Pénélope.
+      </p>
+
+      <h3>Règles du voyage</h3>
+      <ul class="regles">
+        <li>Les escales se débloquent <b>une à une</b>.</li>
+        <li>Chaque énigme rapporte jusqu'à <b>100 points</b> : −30 par erreur, −10 par coup de pouce.</li>
+        <li>Après <b>3 erreurs</b>, la solution est expliquée et tu continues (0 point pour cette énigme).</li>
+        <li>Le parchemin d'Athéna (📜 Mémo) est toujours consultable.</li>
+        <li>Ta progression est sauvegardée sur cet appareil.</li>
+      </ul>
+
+      <p class="centre">
+        <button class="btn" id="bStart">⛵ Lever l'ancre</button>
+      </p>
+      <p class="centre" id="reprise" style="display:none">
+        <button class="btn egee" id="bReprendre">Reprendre mon voyage</button>
+        <button class="btn ghost" id="bReset">Recommencer à zéro</button>
+      </p>
+    </div>
+
+    <div class="carte-papier">
+      <h3 style="margin-top:0">Outils pour tous</h3>
+      <ul class="regles">
+        <li><b>A− / A+</b> : taille du texte.</li>
+        <li><b>Police lisible</b> : police adaptée (dyslexie), espacement augmenté.</li>
+        <li><b>Contraste</b> : couleurs plus contrastées.</li>
+        <li><b>🔊 Écouter</b> : chaque énigme peut être lue à voix haute.</li>
+        <li><b>Masquer le chrono</b> : le temps est noté mais n'est plus affiché.</li>
+        <li><b>Aide visuelle</b> dans l'épreuve des couleurs : intensité affichée en %.</li>
+      </ul>
+      <p><i>Tu peux répondre avec une virgule ou un point : 2,5 ou 2.5.</i></p>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ÉCRAN 2 : CARTE DU VOYAGE
+     ========================================================= -->
+<section id="sMap" class="screen">
+  <h2 class="centre" style="margin:.2rem 0 .6rem">Le voyage d'Ulysse</h2>
+
+  <div class="mapwrap">
+    <svg id="carte" viewBox="300 40 560 400" role="img" aria-labelledby="carteTitre">
+      <title id="carteTitre">Carte de la Méditerranée avec l'itinéraire d'Ulysse, de Troie à Ithaque</title>
+
+      <defs>
+        <pattern id="vagues" width="40" height="18" patternUnits="userSpaceOnUse">
+          <path d="M2 10 q5 -5 10 0 t10 0" fill="none" stroke="#a9c7d3" stroke-width=".9"/>
+        </pattern>
+      </defs>
+
+      <!-- Mer -->
+      <rect x="300" y="40" width="560" height="400" fill="#cfe0e6"/>
+      <rect x="300" y="40" width="560" height="400" fill="url(#vagues)"/>
+
+      <!-- Europe et Asie mineure -->
+      <polygon class="terre" points="
+        0,0 0,290 15,297 38,279 86,276 119,252 131,230 148,218 134,196 143,181
+        163,159 195,139 221,111 214,99 236,75 270,81 283,87 317,69 355,48 376,57
+        388,75 393,93 424,117 443,137 453,143 466,144 482,155 483,162 494,160 506,179
+        523,210 521,220 516,237 519,242 525,242 535,232 549,213 550,208 535,189 553,166
+        571,178 580,186 583,175 570,161 545,146 522,131 528,123 514,122 500,120 481,106
+        464,72 442,58 436,17 470,10 472,34 486,20 505,56 534,75 573,100 597,117
+        606,140 607,166 619,184 619,188 625,195 637,212 645,224 653,229 660,232 646,243
+        659,273 668,282 672,272 678,288 682,272 695,287 693,268 685,253 689,242 706,242
+        714,250 714,236 727,235 698,210 689,199 678,172 689,161 700,180 709,171 722,176
+        724,152 759,155 770,168 762,178 768,184 778,201 789,227 782,235 791,244 796,269
+        815,275 835,281 850,272 873,273 904,284 935,282 966,276 1000,282 1000,0"/>
+
+      <!-- Afrique et Levant -->
+      <polygon class="terre" points="
+        0,480 0,310 5,306 17,303 50,322 128,309 215,278 263,278 327,273 377,262
+        405,268 395,288 396,305 398,338 383,364 402,369 456,393 502,409 538,444 570,465
+        595,471 610,445 620,417 682,397 713,418 741,434 800,440 854,444 911,442 962,435
+        971,418 976,396 988,363 996,348 994,315 1000,305 1000,480"/>
+
+      <!-- Sicile -->
+      <polygon class="ile" points="
+        516,232 507,233 478,239 463,236 448,235 440,239 439,246 442,251 454,255 466,262
+        482,268 503,279 506,268 502,255 506,245 514,234"/>
+      <!-- Sardaigne -->
+      <polygon class="ile" points="
+        362,144 369,152 374,171 372,192 360,203 348,214 343,208 345,183 340,163 338,151 350,146"/>
+      <!-- Corse -->
+      <polygon class="ile" points="
+        366,90 367,99 370,120 360,136 354,130 350,122 351,103 364,100"/>
+      <!-- Crète -->
+      <polygon class="ile" points="
+        703,315 714,315 741,320 764,324 768,321 761,330 733,332 704,322"/>
+      <!-- Chypre -->
+      <polygon class="ile" points="
+        911,327 933,318 966,309 950,327 942,333 929,340 914,338"/>
+
+      <!-- Petites îles : Corfou, Céphalonie, Ithaque, Zante, Malte et Gozo, Lipari, Djerba, Égée -->
+      <ellipse class="ile" cx="611" cy="188" rx="4" ry="9" transform="rotate(-25 611 188)"/>
+      <ellipse class="ile" cx="627" cy="233" rx="6" ry="8"/>
+      <ellipse class="ile" cx="637" cy="223" rx="2.5" ry="5"/>
+      <ellipse class="ile" cx="638" cy="251" rx="4" ry="5"/>
+      <ellipse class="ile" cx="486" cy="304" rx="3" ry="2"/>
+      <ellipse class="ile" cx="481" cy="301" rx="2.5" ry="1.6"/>
+      <circle class="ile" cx="497" cy="223" r="2"/>
+      <circle class="ile" cx="503" cy="219" r="1.5"/>
+      <circle class="ile" cx="492" cy="221" r="1.3"/>
+      <ellipse class="ile" cx="405" cy="366" rx="6" ry="4"/>
+      <ellipse class="ile" cx="770" cy="204" rx="8" ry="6"/>
+      <ellipse class="ile" cx="762" cy="228" rx="4" ry="7"/>
+      <ellipse class="ile" cx="784" cy="247" rx="5" ry="3"/>
+      <ellipse class="ile" cx="810" cy="294" rx="5" ry="8"/>
+      <circle class="ile" cx="747" cy="267" r="3"/>
+      <circle class="ile" cx="740" cy="270" r="2.5"/>
+      <circle class="ile" cx="749" cy="253" r="2"/>
+      <circle class="ile" cx="748" cy="289" r="2.2"/>
+      <circle class="ile" cx="724" cy="279" r="2.5"/>
+
+      <!-- Noms des terres et des mers -->
+      <text class="lblterre" x="430" y="95" transform="rotate(35 430 95)">ITALIA</text>
+      <text class="lblterre" x="652" y="170">HELLAS</text>
+      <text class="lblterre" x="560" y="425">LIBYE</text>
+      <text class="lblterre" x="795" y="205" transform="rotate(70 795 205)">TROADE</text>
+      <text class="lblterre" x="455" y="257" style="font-size:9px">SICILE</text>
+      <text class="lblmer" x="405" y="200">MER TYRRHÉNIENNE</text>
+      <text class="lblmer" x="565" y="285" transform="rotate(-30 565 285)">MER IONIENNE</text>
+      <text class="lblmer" x="738" y="235" transform="rotate(80 738 235)" style="font-size:10px">MER ÉGÉE</text>
+      <text class="lblmer" x="600" y="370" style="font-size:15px; letter-spacing:6px">THALASSA</text>
+
+      <!-- Rose des vents -->
+      <g transform="translate(818 395)" opacity=".85">
+        <circle r="22" fill="#f4e7c9" stroke="#8a6a3b"/>
+        <polygon points="0,-20 5,0 0,20 -5,0" fill="#a8452a"/>
+        <polygon points="-20,0 0,5 20,0 0,-5" fill="#5a4632"/>
+        <text y="-25" text-anchor="middle" font-family="Cinzel" font-size="9" fill="#5a4632">N</text>
+      </g>
+
+      <!-- Éléments remplis par le script -->
+      <polyline id="sillage" points=""/>
+      <g id="escales"></g>
+      <g id="etapes"></g>
+
+      <!-- Navire grec -->
+      <g id="navire">
+        <g id="navireFlip">
+          <path d="M-16 2 Q0 10 16 2 L19 -2 L14 1 Q0 6 -13 1 Z" fill="#3a2414"/>
+          <path d="M-16 2 Q0 10 16 2" fill="none" stroke="#c9a227" stroke-width="1.3"/>
+          <line x1="0" y1="2" x2="0" y2="-20" stroke="#3a2414" stroke-width="1.5"/>
+          <path d="M-8 -18 L8 -18 L9 -4 L-9 -4 Z" fill="#f6ecd2" stroke="#3a2414" stroke-width=".8"/>
+          <path d="M-8 -12 L8 -12" stroke="#a8452a" stroke-width="2"/>
+          <circle cx="13" cy="2" r="1.3" fill="#fff"/>
+          <g stroke="#3a2414" stroke-width=".8">
+            <line x1="-10" y1="4" x2="-13" y2="10"/>
+            <line x1="-5" y1="5" x2="-7" y2="11"/>
+            <line x1="0" y1="5" x2="-1" y2="11"/>
+            <line x1="5" y1="5" x2="5" y2="11"/>
+            <line x1="10" y1="4" x2="11" y2="10"/>
+          </g>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <p class="centre" style="font-style:italic; margin:.4rem 0">
+    Clique sur l'escale dorée (ou utilise le journal de bord ci-dessous).
+  </p>
+
+  <h3>Journal de bord</h3>
+  <div class="journal" id="journal"></div>
+
+  <div class="centre" style="margin-top:1rem">
+    <button class="btn ghost" id="bResetMap">Recommencer le voyage</button>
+  </div>
+</section>
+
+<!-- =========================================================
+     ÉCRAN 3 : ÉPREUVE EN COURS
+     ========================================================= -->
+<section id="sLevel" class="screen">
+  <div class="carte-papier">
+    <div class="lvhead">
+      <div>
+        <h2 id="lvTitre" style="margin:.1rem 0"></h2>
+        <div id="lvLieu" style="font-style:italic; color:var(--encre2)"></div>
+      </div>
+      <button class="btn ghost" id="bCarte">🗺️ Voir la carte</button>
+    </div>
+    <div class="recit" id="lvRecit"></div>
+    <div class="prog" id="prog" aria-hidden="true"></div>
+    <div id="qprog" style="font-weight:700; color:var(--egee)"></div>
+    <div id="qzone"></div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ÉCRAN 4 : BILAN D'UNE ÉPREUVE
+     ========================================================= -->
+<section id="sBilan" class="screen">
+  <div class="carte-papier centre">
+    <h2 id="biTitre"></h2>
+    <p id="biTexte"></p>
+    <div class="tuiles"><span id="biLettre"></span></div>
+    <div class="resgrid" id="biRes"></div>
+    <button class="btn" id="bLarguer">⛵ Reprendre la mer</button>
+  </div>
+</section>
+
+<!-- =========================================================
+     ÉCRAN 5 : ÉNIGME FINALE (code secret)
+     ========================================================= -->
+<section id="sFinal" class="screen">
+  <div class="carte-papier centre">
+    <h2>Le palais d'Ithaque</h2>
+    <p class="recit" style="text-align:left">
+      Déguisé en mendiant, Ulysse se tient devant Pénélope. Elle se méfie :
+      tant d'imposteurs ont voulu prendre la place de son époux !
+      « Si tu es vraiment Ulysse, dis-moi le mot secret que les dieux t'ont confié au fil de ton voyage. »
+    </p>
+    <p>Voici les lettres gagnées, dans le désordre :</p>
+    <div class="tuiles" id="tuiles"></div>
+
+    <label for="code" style="font-weight:700">Le mot secret :</label><br>
+    <input id="code" autocomplete="off"
+      style="font:inherit; font-family:'Cinzel',serif; font-size:1.4rem; text-align:center; padding:.4rem;
+             border:2px solid var(--encre2); border-radius:6px; margin:.5rem; width:14rem;
+             letter-spacing:.2em; text-transform:uppercase">
+    <div>
+      <button class="btn" id="bCode">Prononcer le mot</button>
+      <button class="btn ghost" id="bCodeIndice">🦉 Indice</button>
+    </div>
+    <div id="codeFb" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- =========================================================
+     ÉCRAN 6 : RÉSULTATS ET ENVOI
+     ========================================================= -->
+<section id="sRes" class="screen">
+  <div class="carte-papier">
+    <h2 class="centre">🏛️ Ulysse est de retour à Ithaque !</h2>
+    <p class="centre">Pénélope a reconnu son époux. Ton voyage est terminé : voici ton bilan.</p>
+
+    <div class="resgrid" id="resGrid"></div>
+    <div style="overflow-x:auto">
+      <table class="tableau" id="resTable" style="width:100%"></table>
+    </div>
+
+    <h3>Envoyer mes résultats au professeur</h3>
+    <form class="envoi" id="fEnvoi">
+      <label>
+        Prénom
+        <input id="fPrenom" required maxlength="30" autocomplete="given-name">
+      </label>
+      <label>
+        Première lettre du nom
+        <input id="fInit" required maxlength="1" style="width:4rem; text-transform:uppercase">
+      </label>
+      <label>
+        Classe
+        <input id="fClasse" required maxlength="15" placeholder="ex. 2nde 3">
+      </label>
+      <button class="btn egee" type="submit" id="bEnvoyer">📨 Envoyer mes résultats</button>
+    </form>
+    <div id="envoiFb" aria-live="polite" style="margin-top:.7rem"></div>
+
+    <p class="centre" style="margin-top:1.2rem">
+      <button class="btn ghost" id="bRejouer">Recommencer un voyage</button>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<!-- Fenêtre affichée aux escales intermédiaires (cap Malée, Lestrygons…) -->
+<div id="escaleModal" role="dialog" aria-modal="true" aria-labelledby="escTitre">
+  <div class="carte-papier">
+    <h3 id="escTitre" style="margin-top:0"></h3>
+    <p id="escTexte"></p>
+    <div class="qbtns">
+      <button class="btn" id="escOk">Continuer ▶</button>
+      <button class="btn ghost" id="escLire">🔊 Écouter</button>
+    </div>
+  </div>
+</div>
+
+<div class="frise" aria-hidden="true"></div>
+
+<script>
+// =====================================================================
+//  CONFIGURATION
+// =====================================================================
+const WORKER_URL = 'https://resultatpolenord.lud-tek.workers.dev/';
+const JEU = 'odyssee_solutions';      // => fichier resultats_odyssee_solutions.txt
+const STORE = 'odyssee_solutions_v1'; // nom de la sauvegarde dans le navigateur
+const CODE = 'PENELOPE';              // mot secret final (une lettre par épreuve)
+const DEBUG = true;                   // false = plus de messages dans la console
+
+// Messages de débogage (console du navigateur : F12 > Console)
+function dbg(...args) {
+  if (DEBUG) {
+    console.log('%c[ODYSSÉE]', 'color:#a8452a;font-weight:bold', ...args);
+  }
+}
+
+// =====================================================================
+//  PETITS OUTILS
+// =====================================================================
+const $ = s => document.querySelector(s);
+
+// tire un élément au hasard dans un tableau
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+// mélange un tableau
+function shuffle(a) {
+  a = a.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// nombre en français : fr(2.5) -> "2,5"
+const fr = (n, d = 3) => Number(Number(n).toFixed(d)).toLocaleString('fr-FR', { maximumFractionDigits: d });
+
+// nombre en français avec d décimales fixes : fx(0.25, 3) -> "0,250"
+const fx = (n, d) => Number(n).toFixed(d).replace('.', ',');
+
+const Cm = 'C<sub>m</sub>';
+
+// lit un nombre tapé par l'élève (virgule ou point, espaces ignorés)
+function parseNum(s) {
+  s = String(s).trim().replace(/\s/g, '').replace(',', '.');
+  return s === '' ? NaN : Number(s);
+}
+
+// la valeur v est-elle assez proche de la réponse a ?
+// tol = tolérance relative (2 % par défaut), tolA = tolérance absolue
+function near(v, q, a = q.a) {
+  const marge = Math.max(q.tolA || 0, (q.tol ?? 0.02) * Math.abs(a));
+  return Math.abs(v - a) <= marge + 1e-9;
+}
+
+function mmss(ms) {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  return String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+}
+
+function duree(ms) {
+  const s = Math.round(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m ? `${m} min ${String(s % 60).padStart(2, '0')} s` : `${s} s`;
+}
+
+// HTML -> texte brut (pour la lecture audio)
+function plain(h) {
+  const d = document.createElement('div');
+  d.innerHTML = h;
+  return d.textContent;
+}
+
+// =====================================================================
+//  FABRIQUES DE QUESTIONS
+//  qcm   : choix multiple
+//  num   : réponse numérique (avec unité et tolérance)
+//  pair  : deux listes déroulantes (soluté / solvant)
+//  order : étapes à remettre dans l'ordre
+// =====================================================================
+function qcm(q, good, bad, h, e, opt = {}) {
+  const choices = opt.noShuffle ? [good, ...bad].sort(opt.sortFn) : shuffle([good, ...bad]);
+  return Object.assign({ t: 'qcm', q, choices, ans: good, h, e }, opt);
+}
+
+function num(q, a, u, h, e, opt = {}) {
+  return Object.assign({ t: 'num', q, a, u, h, e }, opt);
+}
+
+function pair(q, fields, options, h, e) {
+  return { t: 'pair', q, f: fields, o: shuffle(options), h, e };
+}
+
+function order(q, items, h, e) {
+  let s = shuffle(items);
+  while (s.join() === items.join()) {
+    s = shuffle(items);
+  }
+  return { t: 'order', q, items, cur: s, h, e };
+}
+
+// =====================================================================
+//  VISUELS : tubes de l'échelle de teinte et courbe d'étalonnage
+// =====================================================================
+
+// couleur d'une solution de sulfate de cuivre (0 à 10 g/L)
+function bleu(c) {
+  const t = Math.min(1, c / 10);
+  const r = Math.round(240 - (240 - 22) * t);
+  const g = Math.round(248 - (248 - 78) * t);
+  const b = Math.round(255 - (255 - 178) * t);
+  return `rgb(${r},${g},${b})`;
+}
+
+function tube(label, c, inconnu) {
+  return `
+    <div class="tube ${inconnu ? 'inconnu' : ''}" role="img"
+         aria-label="Tube ${label}, intensité de teinte ${Math.round(c * 10)} pour cent">
+      <div class="verre"><div class="liq" style="background:${bleu(c)}"></div></div>
+      <span>${label}</span>
+      <span class="int">intensité ${Math.round(c * 10)} %</span>
+    </div>`;
+}
+
+function echelle(extra) {
+  const tubes = [2, 4, 6, 8, 10].map(c => tube(c + ' g/L', c)).join('');
+  return `
+    <div class="tubes" id="tubes">${tubes}<div class="sep"></div>${extra}</div>
+    <label style="font-size:.9rem">
+      <input type="checkbox" onchange="document.getElementById('tubes').classList.toggle('aideVisu', this.checked)">
+      Aide visuelle : afficher l'intensité de la teinte
+    </label>`;
+}
+
+// masse volumique de l'hydromel en fonction de la concentration en sucre
+const rho = c => 998 + 0.38 * c;
+
+function courbe() {
+  const W = 500, H = 320, ml = 62, mr = 16, mt = 14, mb = 48;
+  const pw = W - ml - mr, ph = H - mt - mb;
+  const X = c => ml + c / 200 * pw;
+  const Y = r => mt + (1080 - r) / 90 * ph;
+  let g = '';
+
+  // quadrillage vertical (concentrations)
+  for (let c = 0; c <= 200; c += 10) {
+    const fort = c % 50 === 0;
+    g += `<line x1="${X(c)}" y1="${mt}" x2="${X(c)}" y2="${mt + ph}" stroke="${fort ? '#a58f62' : '#d9c9a3'}" stroke-width="${fort ? 1 : .6}"/>`;
+    if (fort) {
+      g += `<text x="${X(c)}" y="${mt + ph + 16}" text-anchor="middle" font-size="12">${c}</text>`;
+    }
+  }
+
+  // quadrillage horizontal (masses volumiques)
+  for (let r = 990; r <= 1080; r += 5) {
+    const fort = r % 10 === 0;
+    g += `<line x1="${ml}" y1="${Y(r)}" x2="${ml + pw}" y2="${Y(r)}" stroke="${fort ? '#a58f62' : '#e3d5b4'}" stroke-width="${fort ? 1 : .5}"/>`;
+    if (fort) {
+      g += `<text x="${ml - 6}" y="${Y(r) + 4}" text-anchor="end" font-size="12">${r.toLocaleString('fr-FR')}</text>`;
+    }
+  }
+
+  // droite et points de la gamme
+  g += `<line x1="${X(0)}" y1="${Y(rho(0))}" x2="${X(200)}" y2="${Y(rho(200))}" stroke="#a8452a" stroke-width="2.2"/>`;
+  [0, 50, 100, 150, 200].forEach(c => {
+    g += `<circle cx="${X(c)}" cy="${Y(rho(c))}" r="4" fill="#1d4f7a"/>`;
+  });
+
+  // titres des axes
+  g += `<text x="${ml + pw / 2}" y="${H - 6}" text-anchor="middle" font-size="13" font-weight="bold">Concentration en masse en sucre Cm (g/L)</text>`;
+  g += `<text transform="translate(14 ${mt + ph / 2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="bold">Masse volumique ρ (g/L)</text>`;
+
+  const lignesC = [0, 50, 100, 150, 200].map(c => `<td>${c}</td>`).join('');
+  const lignesR = [0, 50, 100, 150, 200].map(c => `<td>${rho(c).toLocaleString('fr-FR')}</td>`).join('');
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" style="max-width:520px;width:100%;background:#fffef8;border:1px solid #8a6a3b;border-radius:4px"
+         role="img" aria-label="Courbe d'étalonnage : droite passant par les points (0 ; 998), (50 ; 1017), (100 ; 1036), (150 ; 1055) et (200 ; 1074)">
+      ${g}
+    </svg>
+    <details style="margin-top:.4rem">
+      <summary>Voir le tableau de valeurs de la gamme d'étalonnage</summary>
+      <table class="tableau">
+        <tr><th>C<sub>m</sub> (g/L)</th>${lignesC}</tr>
+        <tr><th>ρ (g/L)</th>${lignesR}</tr>
+      </table>
+    </details>`;
+}
+
+// =====================================================================
+//  LES 8 ÉPREUVES
+//  Chaque épreuve a une fonction gen() qui fabrique ses questions
+//  (les valeurs numériques changent à chaque partie).
+//  Pour chaque question : énoncé, bonne réponse, mauvaises réponses,
+//  [coups de pouce], explication.
+// =====================================================================
+const LEVELS = [
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 1 : ISMAROS — soluté et solvant d'après la composition
+// ---------------------------------------------------------------------
+{
+  nom: 'Ismaros',
+  lieu: 'Cité des Cicones, en Thrace',
+  titre: 'Les amphores de Maron',
+  lettre: 'P',
+  recit: "Troie est tombée. Ulysse reprend la mer avec ses douze navires. Première escale : Ismaros, cité des Cicones. Le prêtre d'Apollon, Maron, offre à Ulysse douze amphores d'un vin doux et puissant. Pour déchiffrer les inscriptions gravées sur les amphores, il faut savoir distinguer le soluté et le solvant.",
+  gen() {
+    const ex = pick([
+      { txt: "L'eau de mer contient environ 35 g de sels dissous par litre, surtout du chlorure de sodium.", sol: 'chlorure de sodium (sel)' },
+      { txt: "L'hydromel des Cicones est préparé en dissolvant du miel dans de l'eau.", sol: 'miel' },
+      { txt: "La saumure des olives de Thrace est obtenue en dissolvant du sel dans de l'eau.", sol: 'chlorure de sodium (sel)' }
+    ]);
+
+    return [
+      qcm(
+        "Sur l'amphore est gravé : « solution aqueuse ». Dans une solution aqueuse, le solvant est :",
+        "l'eau",
+        ["le sel", "un solide", "l'espèce présente en plus petite quantité"],
+        ["« Aqueux » vient du latin <i>aqua</i>.",
+         "Le solvant est l'espèce dans laquelle on dissout les autres."],
+        "Une solution <b>aqueuse</b> a pour solvant l'<b>eau</b>. Les espèces dissoutes dans l'eau sont les <b>solutés</b>."
+      ),
+
+      qcm(
+        "En général, dans une solution, le solvant est l'espèce chimique :",
+        "présente en plus grande quantité",
+        ["présente en plus petite quantité", "qui est forcément solide", "qui donne la couleur à la solution"],
+        ["Dans l'eau sucrée, qu'y a-t-il le plus : l'eau ou le sucre ?"],
+        "Le solvant est en général l'espèce <b>majoritaire</b> ; les solutés sont dissous dedans, en plus petite quantité."
+      ),
+
+      pair(
+        ex.txt + " Identifie le soluté et le solvant.",
+        [{ l: 'Soluté', a: ex.sol }, { l: 'Solvant', a: 'eau' }],
+        ['chlorure de sodium (sel)', 'miel', 'eau', 'sable', 'dioxygène'],
+        ["Le soluté est ce qu'on <b>dissout</b>.",
+         "Le solvant est le liquide <b>qui dissout</b>, ici majoritaire."],
+        `Soluté : <b>${ex.sol}</b> (espèce dissoute) ; solvant : <b>eau</b>. C'est donc une solution aqueuse.`
+      ),
+
+      qcm(
+        "Le vin de Maron contient de l'eau, de l'éthanol, du sucre et des tanins. Combien de solvant(s) contient-il ?",
+        "Un seul, l'eau : l'éthanol, le sucre et les tanins sont des solutés",
+        ["Quatre : chaque espèce est un solvant",
+         "Deux : l'eau et l'éthanol, car ce sont des liquides",
+         "Aucun : le vin est un corps pur"],
+        ["Une solution peut contenir <b>plusieurs solutés</b>…",
+         "…mais il n'y a qu'<b>un</b> solvant, l'espèce majoritaire."],
+        "Une solution contient <b>un seul solvant</b> (ici l'eau, majoritaire) et peut contenir <b>plusieurs solutés</b>. Un soluté peut être solide (sucre), liquide (éthanol) ou gazeux."
+      ),
+
+      pair(
+        "Pour soigner les blessés, le médecin de bord dissout des cristaux de diiode dans de l'éthanol : c'est la teinture d'iode.",
+        [{ l: 'Soluté', a: 'diiode' }, { l: 'Solvant', a: 'éthanol' }],
+        ['diiode', 'éthanol', 'eau', 'dioxygène'],
+        ["Attention : ici, il n'y a pas d'eau dans le mode opératoire !",
+         "Le liquide dans lequel on dissout les cristaux est le solvant."],
+        "Soluté : <b>diiode</b> ; solvant : <b>éthanol</b>. Ce n'est <b>pas</b> une solution aqueuse : le solvant n'est pas toujours l'eau !"
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 2 : LOTOPHAGES — soluté et solvant d'après un mode opératoire
+// ---------------------------------------------------------------------
+{
+  nom: 'Lotophages',
+  lieu: "Côte de Libye (l'île de Djerba, Tunisie actuelle)",
+  titre: "Le remède contre l'oubli",
+  lettre: 'E',
+  recit: "Le cap Malée franchi, une tempête de neuf jours pousse la flotte jusqu'au pays des Lotophages. Les marins qui goûtent le fruit du lotos oublient tout, même leur retour ! Ulysse doit lire la tablette du médecin de bord pour préparer le remède.",
+  gen() {
+    const v = pick([
+      { txt: "On introduit 5,0 g de saccharose (sucre) dans une fiole jaugée de 250,0 mL, on ajoute de l'eau distillée, on agite jusqu'à disparition du solide, puis on complète jusqu'au trait de jauge.", sol: 'saccharose', V: '250,0' },
+      { txt: "On introduit 0,90 g de chlorure de sodium dans une fiole jaugée de 100,0 mL, on ajoute de l'eau distillée, on agite jusqu'à disparition du solide, puis on complète jusqu'au trait de jauge.", sol: 'chlorure de sodium', V: '100,0' },
+      { txt: "On introduit 2,5 g de cristaux bleus de sulfate de cuivre dans une fiole jaugée de 500,0 mL, on ajoute de l'eau distillée, on agite jusqu'à disparition du solide, puis on complète jusqu'au trait de jauge.", sol: 'sulfate de cuivre', V: '500,0' }
+    ]);
+
+    return [
+      pair(
+        "<i>Tablette du médecin :</i> « " + v.txt + " » Identifie le soluté et le solvant.",
+        [{ l: 'Soluté', a: v.sol }, { l: 'Solvant', a: 'eau distillée' }],
+        [v.sol, 'eau distillée', 'fiole jaugée', 'trait de jauge'],
+        ["Quelle espèce est un solide qu'on fait disparaître dans le liquide ?",
+         "La verrerie n'est jamais un soluté ni un solvant !"],
+        `Soluté : <b>${v.sol}</b> ; solvant : <b>eau distillée</b>.`
+      ),
+
+      qcm(
+        "Dans ce protocole, comment s'appelle l'opération où le solide « disparaît » dans l'eau ?",
+        "une dissolution",
+        ["une fusion", "une dilution", "une évaporation"],
+        ["Le solide ne fond pas : il n'est pas chauffé.",
+         "Il se disperse dans le solvant."],
+        "C'est une <b>dissolution</b> : le soluté se disperse dans le solvant. Une <b>fusion</b> est le passage de l'état solide à l'état liquide d'un corps (par chauffage) ; une <b>dilution</b> consiste à ajouter du solvant à une solution."
+      ),
+
+      qcm(
+        "Quel est le volume de la solution obtenue ?",
+        `${v.V} mL, le volume de la fiole jaugée`,
+        [`${v.V} mL plus le volume du solide`,
+         "le volume d'eau versé, qu'on ne connaît pas",
+         "on ne peut pas le savoir"],
+        ["On complète jusqu'au trait de jauge…",
+         "Le trait de jauge indique le volume <b>total</b> de solution."],
+        `Le volume de la <b>solution</b> est celui de la fiole jaugée : V = ${v.V} mL. C'est ce volume qu'on utilise pour calculer ${Cm}.`
+      ),
+
+      qcm(
+        "Une solution d'eau sucrée a une masse volumique ρ = 1 020 g/L et une concentration en masse en sucre C<sub>m</sub> = 50 g/L. Que représente la valeur 1 020 g/L ?",
+        "la masse d'un litre de solution entière (eau + sucre)",
+        ["la masse de sucre dissous dans un litre de solution",
+         "la masse d'un litre d'eau pure",
+         "la masse maximale de sucre qu'on peut dissoudre"],
+        ["La masse volumique concerne <b>toute</b> la solution.",
+         "La concentration en masse ne concerne que le <b>soluté</b>."],
+        `ρ = m(solution)/V(solution) : 1 L de solution pèse 1 020 g. ${Cm} = m(soluté)/V(solution) : ce litre contient 50 g de sucre. Ne pas confondre les deux !`
+      ),
+
+      qcm(
+        "La concentration en masse d'un soluté se calcule par :",
+        "C<sub>m</sub> = m(soluté) / V(solution)",
+        ["C<sub>m</sub> = m(solution) / V(solution)",
+         "C<sub>m</sub> = m(soluté) × V(solution)",
+         "C<sub>m</sub> = V(solution) / m(soluté)"],
+        ["Ouvre le 📜 Mémo !",
+         "L'unité est le g/L : des grammes <b>divisés par</b> des litres."],
+        `${Cm} = m(soluté) / V(solution), en g/L. La formule avec m(solution) donne la masse volumique ρ.`
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 3 : CYCLOPE — concentration en masse par dissolution
+// ---------------------------------------------------------------------
+{
+  nom: 'Île des Cyclopes',
+  lieu: "Côte orientale de la Sicile, au pied de l'Etna",
+  titre: 'Le piège de Polyphème',
+  lettre: 'N',
+  recit: "Le cyclope Polyphème, fils de Poséidon, enferme Ulysse et ses compagnons dans sa grotte. La ruse d'Ulysse : l'enivrer avec le vin de Maron, servi pur, alors qu'on le coupait d'ordinaire avec vingt mesures d'eau ! Calcule les concentrations pour préparer le piège.",
+  gen() {
+    const m1 = pick([6, 8, 10, 12, 15, 18]);
+    const V1 = pick([0.5, 0.25, 2]);
+    const V1t = { 0.5: '0,500', 0.25: '0,250', 2: '2,00' }[V1];
+    const m2 = pick([1.5, 2, 2.5, 3, 4]);
+    const V2 = pick([50, 100, 200, 250]);
+    const m4 = pick([30, 45, 60, 75]);
+    const V4 = pick([1.5, 2.5, 3]);
+    const m5 = pick([100, 250, 500, 750]);
+    const V5 = pick([25, 50, 100]);
+
+    return [
+      num(
+        `Un compagnon dissout ${fr(m1)} g de miel dans de l'eau pour obtenir ${V1t} L de solution. Calcule la concentration en masse en miel.`,
+        m1 / V1, 'g/L',
+        [`${Cm} = m(soluté) / V(solution)`,
+         `${Cm} = ${fr(m1)} g ÷ ${V1t} L`],
+        `${Cm} = m / V = ${fr(m1)} / ${V1t} = <b>${fr(m1 / V1)} g/L</b>.`,
+        { inv: V1 / m1, invMsg: "Tu as inversé : on divise la <b>masse</b> par le <b>volume</b>." }
+      ),
+
+      num(
+        `Ulysse dissout ${fx(m2, 1)} g de sel dans de l'eau et obtient ${V2} mL de solution. Calcule ${Cm} en g/L.`,
+        m2 / (V2 / 1000), 'g/L',
+        ["Le volume doit être en <b>litres</b> : 1 L = 1 000 mL.",
+         `${V2} mL = ${fx(V2 / 1000, 3)} L ; puis ${Cm} = m / V.`],
+        `V = ${V2} mL = ${fx(V2 / 1000, 3)} L ; ${Cm} = ${fx(m2, 1)} / ${fx(V2 / 1000, 3)} = <b>${fr(m2 / (V2 / 1000))} g/L</b>.`
+      ),
+
+      qcm(
+        "Pour préparer <b>précisément</b> 100,0 mL de solution par dissolution, quelle verrerie faut-il utiliser ?",
+        "une fiole jaugée de 100,0 mL",
+        ["un bécher de 100 mL", "une éprouvette graduée de 100 mL", "un erlenmeyer de 100 mL"],
+        ["Le volume doit être connu avec précision (« ,0 »).",
+         "Cette verrerie possède un unique trait de jauge."],
+        "La <b>fiole jaugée</b> donne un volume très précis grâce à son trait de jauge. Le bécher et l'erlenmeyer ne servent pas à mesurer ; l'éprouvette est moins précise."
+      ),
+
+      num(
+        `Dans sa grotte, Polyphème prépare une saumure pour ses fromages : ${m4} g de sel dans une jarre, volume final ${fx(V4, 1)} L. Quelle est la concentration en masse en sel ?`,
+        m4 / V4, 'g/L',
+        [`${Cm} = m / V`,
+         `${Cm} = ${m4} ÷ ${fx(V4, 1)}`],
+        `${Cm} = ${m4} / ${fx(V4, 1)} = <b>${fr(m4 / V4)} g/L</b>.`,
+        { inv: V4 / m4, invMsg: "Tu as inversé : on divise la <b>masse</b> par le <b>volume</b>." }
+      ),
+
+      num(
+        `Le médecin de bord dissout ${m5} mg d'une plante sédative pour obtenir ${V5} mL de solution. Calcule ${Cm} en g/L.`,
+        m5 / V5, 'g/L',
+        ["Convertis : 1 g = 1 000 mg et 1 L = 1 000 mL.",
+         `m = ${fx(m5 / 1000, 3)} g et V = ${fx(V5 / 1000, 3)} L.`],
+        `m = ${m5} mg = ${fx(m5 / 1000, 3)} g ; V = ${V5} mL = ${fx(V5 / 1000, 3)} L ; ${Cm} = <b>${fr(m5 / V5)} g/L</b>. (Astuce : des mg/mL sont des g/L !)`
+      ),
+
+      qcm(
+        "D'ordinaire, on coupait 1 coupe de vin de Maron avec 20 coupes d'eau. Ulysse sert le vin <b>pur</b> au cyclope. Par rapport au vin coupé, la concentration en éthanol du vin pur est :",
+        "environ 21 fois plus grande",
+        ["20 fois plus petite", "identique", "2 fois plus grande"],
+        ["Dans le vin coupé : 1 coupe de vin dans combien de coupes au total ?",
+         "Même masse d'éthanol, mais un volume 21 fois plus grand dans le vin coupé."],
+        "Vin coupé : 1 volume de vin dans 1 + 20 = <b>21 volumes</b>. Même masse d'éthanol dans un volume 21 fois plus grand : le vin coupé est 21 fois moins concentré. Servi pur, le vin endort vite Polyphème !"
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 4 : ÉOLE — grandeur quotient (retrouver m ou V)
+// ---------------------------------------------------------------------
+{
+  nom: "Île d'Éole",
+  lieu: 'Îles Éoliennes, au nord de la Sicile',
+  titre: "L'outre des vents",
+  lettre: 'E',
+  recit: "Éole, maître des vents, enferme les vents contraires dans une outre en cuir et l'offre à Ulysse. Pour sceller l'outre, il faut préparer des solutions de résine avec les bonnes masses et les bons volumes : la grandeur quotient C<sub>m</sub> = m / V doit être utilisée « dans tous les sens » !",
+  gen() {
+    const c1 = pick([10, 20, 40, 50]);
+    const v1 = pick([0.5, 0.2, 1.5]);
+    const v1t = { 0.5: '0,500', 0.2: '0,200', 1.5: '1,50' }[v1];
+    const c2 = pick([8, 12, 16, 20]);
+    const v2 = pick([250, 500, 50]);
+    const c3 = pick([20, 40, 50, 80]);
+    const m3 = pick([2, 4, 5, 10]);
+    const v5 = pick([100, 200, 250]);
+    const c5 = pick([12, 15, 20]);
+
+    return [
+      num(
+        `On veut ${v1t} L de solution de résine à ${Cm} = ${c1} g/L. Quelle masse de résine faut-il dissoudre ?`,
+        c1 * v1, 'g',
+        [`De ${Cm} = m / V, on tire m = ${Cm} × V.`,
+         `m = ${c1} × ${v1t}`],
+        `m = ${Cm} × V = ${c1} × ${v1t} = <b>${fr(c1 * v1)} g</b>.`,
+        { inv: c1 / v1, invMsg: "Tu as divisé : ici, m = C<sub>m</sub> × V." }
+      ),
+
+      num(
+        `Quelle masse de soluté contiennent ${v2} mL d'une solution à ${c2} g/L ?`,
+        c2 * v2 / 1000, 'g',
+        [`m = ${Cm} × V avec V en litres.`,
+         `${v2} mL = ${fx(v2 / 1000, 3)} L.`],
+        `m = ${c2} × ${fx(v2 / 1000, 3)} = <b>${fr(c2 * v2 / 1000)} g</b>.`
+      ),
+
+      num(
+        `Éole dispose de ${m3} g de résine. Quel volume de solution à ${c3} g/L peut-il préparer ? Donne le résultat en <b>mL</b>.`,
+        m3 / c3 * 1000, 'mL',
+        [`De ${Cm} = m / V, on tire V = m / ${Cm} (en L).`,
+         `V = ${m3} ÷ ${c3} = … L, puis multiplie par 1 000 pour avoir des mL.`],
+        `V = m / ${Cm} = ${m3} / ${c3} = ${fr(m3 / c3, 4)} L = <b>${fr(m3 / c3 * 1000)} mL</b>.`,
+        { inv: c3 / m3 * 1000, invMsg: "Tu as inversé : V = m / C<sub>m</sub>." }
+      ),
+
+      qcm(
+        "On garde la même masse de soluté mais on prépare un volume de solution <b>deux fois plus grand</b>. La concentration en masse est alors :",
+        "divisée par 2",
+        ["multipliée par 2", "inchangée", "divisée par 4"],
+        [`${Cm} = m / V : que se passe-t-il si le dénominateur double ?`],
+        `${Cm} = m / V : si V double à m constant, ${Cm} est <b>divisée par 2</b>. C'est le principe de la dilution !`
+      ),
+
+      num(
+        `Pour préparer V = ${fx(v5, 1)} mL de solution à ${Cm} = ${fx(c5, 1)} g/L, quelle masse de soluté faut-il peser ?`,
+        c5 * v5 / 1000, 'g',
+        ["m = C<sub>m</sub> × V, V en litres.",
+         `V = ${fx(v5 / 1000, 4)} L.`],
+        `m = ${fx(c5, 1)} × ${fx(v5 / 1000, 4)} = <b>${fr(c5 * v5 / 1000)} g</b>.`
+      ),
+
+      qcm(
+        "Pour préparer 200 mL de solution à 15 g/L, Euryloque calcule m = 15 × 200 = 3 000 g. Qu'en penses-tu ?",
+        "Résultat faux : il fallait convertir 200 mL en 0,200 L, donc m = 3,0 g",
+        ["Résultat juste",
+         "Il fallait diviser : m = 15 / 200",
+         "Il fallait diviser : m = 200 / 15"],
+        ["3 000 g, c'est 3 kg de soluté dans un petit flacon… est-ce vraisemblable ?",
+         "Vérifie l'unité du volume."],
+        "Test de vraisemblance : 3 kg dans 200 mL est absurde ! Le volume doit être en litres : m = 15 × 0,200 = <b>3,0 g</b>."
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 5 : CIRCÉ — dilution
+// ---------------------------------------------------------------------
+{
+  nom: 'Île de Circé',
+  lieu: 'Aiaié (le mont Circé, au sud de Rome)',
+  titre: 'La potion de la magicienne',
+  lettre: 'L',
+  recit: "Après la fureur des vents et les géants Lestrygons, Ulysse aborde l'île de la magicienne Circé, qui change ses compagnons en porcs grâce à une potion. Hermès lui donne la plante moly. Pour rendre la potion inoffensive, il faut la diluer avec précision.",
+  gen() {
+    const cm = pick([20, 50, 100]);
+    const vm = pick([5, 10, 20]);
+    const vf = pick([50, 100, 200, 250].filter(x => x > vm * 2));
+    const c3 = pick([60, 100, 120, 200]);
+    const F3 = pick([4, 5, 10, 20]);
+    const combo = pick([[100, 10], [100, 20], [250, 25], [500, 50], [200, 10], [250, 10]]); // [V fille, facteur]
+    const c5 = pick([40, 80, 100]);
+
+    return [
+      qcm(
+        "Lors d'une dilution, on ajoute du solvant à une solution. Qu'est-ce qui se conserve ?",
+        "la masse de soluté",
+        ["la concentration en masse", "le volume de la solution", "la masse de solvant"],
+        ["On n'ajoute <b>que</b> de l'eau…"],
+        "On n'ajoute que du solvant : la <b>masse de soluté</b> est la même dans le prélèvement de solution mère et dans la solution fille. D'où : C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>."
+      ),
+
+      num(
+        `On prélève V<sub>mère</sub> = ${vm} mL de potion à ${cm} g/L et on complète avec de l'eau jusqu'à V<sub>fille</sub> = ${vf} mL. Calcule la concentration de la solution fille.`,
+        cm * vm / vf, 'g/L',
+        ["C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         `C<sub>fille</sub> = ${cm} × ${vm} ÷ ${vf}`],
+        `C<sub>fille</sub> = C<sub>mère</sub> × V<sub>mère</sub> / V<sub>fille</sub> = ${cm} × ${vm} / ${vf} = <b>${fr(cm * vm / vf)} g/L</b>. Ici les volumes peuvent rester en mL car ils sont des deux côtés.`,
+        { inv: cm * vf / vm, invMsg: "Une dilution <b>diminue</b> la concentration ! Vérifie ton calcul." }
+      ),
+
+      num(
+        `Circé dilue une potion de ${c3} g/L et obtient une solution à ${fr(c3 / F3)} g/L. Quel est le facteur de dilution F ?`,
+        F3, '(sans unité)',
+        ["F = C<sub>mère</sub> / C<sub>fille</sub>",
+         `F = ${c3} ÷ ${fr(c3 / F3)}`],
+        `F = C<sub>mère</sub> / C<sub>fille</sub> = ${c3} / ${fr(c3 / F3)} = <b>${F3}</b> : la potion est ${F3} fois moins concentrée.`,
+        { tol: 0.01 }
+      ),
+
+      qcm(
+        "Pour prélever <b>précisément</b> 10,0 mL de solution mère, on utilise :",
+        "une pipette jaugée de 10,0 mL munie d'une propipette",
+        ["une éprouvette graduée de 10 mL", "un bécher de 10 mL", "une fiole jaugée de 10,0 mL"],
+        ["Pour <b>prélever</b> (et non contenir) un volume précis…"],
+        "La <b>pipette jaugée</b> (avec propipette, on ne pipette jamais à la bouche !) sert à prélever un volume précis. La fiole jaugée sert à contenir le volume final de la solution fille."
+      ),
+
+      num(
+        `On veut préparer V<sub>fille</sub> = ${combo[0]} mL de solution à ${fr(c5 / combo[1])} g/L à partir d'une solution mère à ${c5} g/L. Quel volume de solution mère faut-il prélever (en mL) ?`,
+        combo[0] / combo[1], 'mL',
+        ["V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub> / C<sub>mère</sub>",
+         `V<sub>mère</sub> = ${fr(c5 / combo[1])} × ${combo[0]} ÷ ${c5}`],
+        `V<sub>mère</sub> = ${fr(c5 / combo[1])} × ${combo[0]} / ${c5} = <b>${fr(combo[0] / combo[1])} mL</b> (facteur de dilution F = ${combo[1]}).`
+      ),
+
+      order(
+        "Remets dans l'ordre les étapes de la dilution (utilise les flèches ↑ ↓).",
+        ["Verser un peu de solution mère dans un bécher.",
+         "Prélever le volume V<sub>mère</sub> avec une pipette jaugée munie d'une propipette.",
+         "Verser le prélèvement dans la fiole jaugée de volume V<sub>fille</sub>.",
+         "Ajouter de l'eau distillée jusqu'aux trois quarts, boucher et agiter.",
+         "Compléter avec de l'eau distillée jusqu'au trait de jauge, boucher et agiter."],
+        ["On ne pipette jamais directement dans le flacon de solution mère.",
+         "Le trait de jauge est atteint en tout dernier."],
+        "Bécher → pipette jaugée → fiole jaugée → eau aux 3/4 et agitation → trait de jauge et agitation finale."
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 6 : SIRÈNES — concentration maximale (saturation)
+// ---------------------------------------------------------------------
+{
+  nom: 'Rocher des Sirènes',
+  lieu: 'Golfe de Naples (îlots Li Galli)',
+  titre: 'Le chant de la saturation',
+  lettre: 'O',
+  recit: "Ulysse bouche les oreilles de ses compagnons avec de la cire et se fait attacher au mât. Sur le rocher des Sirènes, l'eau de mer s'évapore dans des cuvettes et des cristaux de sel se déposent. Pour passer sans être envoûté, il faut comprendre jusqu'où une espèce peut se dissoudre.",
+  gen() {
+    const V = pick([50, 100]);
+    const k = V / 100;
+    const masses = [30, 33, 36, 39, 42].map(x => x * k);
+
+    const ligneMasses = masses.map(m => `<td>${fr(m)}</td>`).join('');
+    const ligneObs = masses.map(m => `<td>${m <= 36 * k ? 'tout est dissous' : '<b>dépôt solide</b>'}</td>`).join('');
+    const tab = `
+      <table class="tableau">
+        <tr><th>Masse totale de sel ajoutée (g)</th>${ligneMasses}</tr>
+        <tr><th>Observation après agitation</th>${ligneObs}</tr>
+      </table>`;
+
+    const v4 = pick([250, 500, 150]);
+    const m5 = pick([10, 15, 20]);
+    const c5 = m5 / 0.05;
+    const saturee = c5 > 360;
+    const repDepot = `Il restera du sel solide (dépôt) : ${fr(c5)} g/L dépasserait 360 g/L`;
+    const repDissous = `Tout le sel se dissout : ${fr(c5)} g/L est inférieur à 360 g/L`;
+
+    return [
+      qcm(
+        "Une solution est dite <b>saturée</b> lorsque :",
+        "le soluté ne peut plus se dissoudre : un dépôt solide persiste",
+        ["elle contient beaucoup d'eau", "elle est colorée", "elle a été chauffée"],
+        ["Pense au sucre que tu ajoutes dans un verre d'eau, encore et encore…"],
+        "Quand la concentration atteint la <b>concentration maximale</b> (solubilité), le soluté ne se dissout plus : la solution est <b>saturée</b> et un dépôt solide apparaît."
+      ),
+
+      qcm(
+        "Concentration maximale dans l'eau à 20 °C : sucre ≈ 2 000 g/L ; sel ≈ 360 g/L. Lequel est le plus soluble dans l'eau ?",
+        "le sucre",
+        ["le sel", "ils sont aussi solubles l'un que l'autre", "on ne peut pas savoir"],
+        ["Plus la concentration maximale est grande, plus on peut dissoudre de soluté."],
+        "On peut dissoudre environ 2 000 g de sucre par litre, mais seulement 360 g de sel : le <b>sucre</b> est plus soluble."
+      ),
+
+      num(
+        `Expérience : on ajoute progressivement du sel dans ${V} mL d'eau, en agitant. On considère que le volume de la solution reste égal à ${V} mL. Estime la concentration maximale du sel (en g/L).`,
+        370, 'g/L',
+        ["Repère la dernière masse <b>entièrement dissoute</b> et la première qui donne un dépôt.",
+         `C<sub>max</sub> ≈ m(dernière masse dissoute) / V, avec V = ${fx(V / 1000, 3)} L.`],
+        `Tout est dissous jusqu'à ${fr(36 * k)} g ; un dépôt apparaît à ${fr(39 * k)} g. Donc C<sub>max</sub> est entre ${fr(36 * k)}/${fx(V / 1000, 3)} = 360 g/L et ${fr(39 * k)}/${fx(V / 1000, 3)} = 390 g/L. La valeur de référence est <b>360 g/L</b> (toute réponse entre 350 et 390 g/L est acceptée).`,
+        { vis: tab, tolA: 20, solTxt: 'environ 360 g/L (entre 350 et 390 g/L accepté)' }
+      ),
+
+      num(
+        `La concentration maximale du sel dans l'eau est 360 g/L. Quelle masse maximale de sel peut-on dissoudre dans ${v4} mL d'eau douce ?`,
+        360 * v4 / 1000, 'g',
+        ["m<sub>max</sub> = C<sub>max</sub> × V, V en litres.",
+         `m<sub>max</sub> = 360 × ${fx(v4 / 1000, 3)}`],
+        `m<sub>max</sub> = 360 × ${fx(v4 / 1000, 3)} = <b>${fr(360 * v4 / 1000)} g</b>.`
+      ),
+
+      qcm(
+        `Un marin verse ${m5} g de sel dans 50 mL d'eau (C<sub>max</sub> du sel = 360 g/L). Que va-t-il observer ?`,
+        saturee ? repDepot : repDissous,
+        [saturee ? repDissous : repDepot, "Le sel se transforme en liquide", "L'eau devient bleue"],
+        ["Calcule la concentration qu'on obtiendrait si tout se dissolvait.",
+         `${m5} g ÷ 0,050 L = ?`],
+        `Si tout se dissolvait : ${Cm} = ${m5} / 0,050 = ${fr(c5)} g/L. ` +
+          (saturee
+            ? "C'est plus que 360 g/L : la solution est <b>saturée</b>, il reste un dépôt."
+            : "C'est moins que 360 g/L : <b>tout se dissout</b>, la solution n'est pas saturée.")
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 7 : CHARYBDE ET SCYLLA — échelle de teinte
+// ---------------------------------------------------------------------
+{
+  nom: 'Charybde et Scylla',
+  lieu: 'Détroit de Messine, entre Sicile et Italie',
+  titre: 'Le détroit des teintes',
+  lettre: 'P',
+  recit: "D'un côté Scylla, monstre à six têtes ; de l'autre Charybde, tourbillon qui engloutit la mer. Pour passer entre les deux, le pilote compare la couleur de l'eau puisée à une échelle de teintes de sulfate de cuivre (bleu) : il en déduit la concentration… et la route à suivre.",
+  gen() {
+    const cx = pick([3, 5, 7, 9]);
+    const ints = ["entre 2 et 4 g/L", "entre 4 et 6 g/L", "entre 6 et 8 g/L", "entre 8 et 10 g/L"];
+    const good = ints[(cx - 3) / 2];
+    const cf = pick([2, 4, 6, 8]);
+    const F = pick([5, 10]);
+    const cmatch = pick([2, 4, 6]);
+
+    return [
+      qcm(
+        "Une échelle de teinte est :",
+        "une série de solutions d'un même soluté, de concentrations connues",
+        ["une série de solutions de solutés différents",
+         "une seule solution très colorée",
+         "un instrument qui mesure la masse"],
+        ["Pour comparer, il faut des références…"],
+        "Une échelle de teinte est une <b>gamme d'étalonnage</b> : des solutions du <b>même soluté</b> à des concentrations <b>connues</b>, préparées par dilution d'une solution mère."
+      ),
+
+      qcm(
+        "Le pilote compare l'eau puisée (tube X, entouré en rouge) à l'échelle de teinte. Dans quel intervalle se trouve sa concentration en sulfate de cuivre ?",
+        good,
+        ints.filter(x => x !== good),
+        ["Range le tube X entre les deux tubes dont la teinte l'encadre.",
+         "Tu peux cocher « Aide visuelle » pour voir l'intensité de chaque teinte."],
+        `Le tube X est plus foncé que le tube à ${cx - 1} g/L et plus clair que celui à ${cx + 1} g/L : ${Cm} est <b>${good}</b>.`,
+        {
+          vis: echelle(tube('X', cx, true)),
+          noShuffle: true,
+          sortFn: (a, b) => parseInt(a.match(/\d+/)) - parseInt(b.match(/\d+/))
+        }
+      ),
+
+      num(
+        `Pour préparer le tube à ${cf} g/L de l'échelle (volume total 10,0 mL), on dilue une solution mère à 10 g/L. Quel volume de solution mère faut-il prélever (en mL) ?`,
+        cf, 'mL',
+        ["C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>",
+         `V<sub>mère</sub> = ${cf} × 10,0 ÷ 10`],
+        `V<sub>mère</sub> = ${cf} × 10,0 / 10 = <b>${cf} mL</b>, puis on ajoute ${10 - cf} mL d'eau distillée.`
+      ),
+
+      num(
+        `Près de Charybde, l'eau est trop bleue pour l'échelle. Le pilote la dilue ${F} fois ; le tube obtenu (Y) a <b>la même teinte</b> que le tube à ${cmatch} g/L. Quelle est la concentration de l'eau puisée avant dilution ?`,
+        F * cmatch, 'g/L',
+        ["Après dilution, la concentration est celle du tube de même teinte.",
+         "Avant dilution, la solution était F fois plus concentrée."],
+        `Après dilution : ${cmatch} g/L. Avant dilution : ${F} × ${cmatch} = <b>${F * cmatch} g/L</b>.`,
+        {
+          vis: echelle(tube('Y (dilué)', cmatch, true)),
+          inv: cmatch / F,
+          invMsg: "Avant dilution, la solution était <b>plus</b> concentrée !"
+        }
+      ),
+
+      qcm(
+        "Pourquoi une échelle de teinte ne donne-t-elle souvent qu'un <b>encadrement</b> de la concentration ?",
+        "car la comparaison est visuelle et le nombre de tubes de référence est limité",
+        ["car le sulfate de cuivre n'est pas soluble",
+         "car la concentration change quand on regarde le tube",
+         "car on ne connaît pas les concentrations des tubes"],
+        ["Peut-on distinguer à l'œil deux bleus très proches ?"],
+        "La comparaison à l'œil est peu précise et on n'a qu'un nombre limité de tubes : on obtient un <b>encadrement</b>. Une mesure de masse volumique (ou d'absorbance, en 1<sup>re</sup>) est plus précise."
+      )
+    ];
+  }
+},
+
+// ---------------------------------------------------------------------
+// ÉPREUVE 8 : ITHAQUE — étalonnage par masse volumique
+// ---------------------------------------------------------------------
+{
+  nom: 'Ithaque',
+  lieu: "Île d'Ithaque, mer Ionienne",
+  titre: "L'hydromel des prétendants",
+  lettre: 'E',
+  recit: "Sur Thrinacie, les compagnons ont mangé les vaches du Soleil : Zeus a foudroyé le navire. Seul survivant, retenu sept ans par Calypso, ramené par les Phéaciens, Ulysse arrive enfin à Ithaque, déguisé en mendiant. Les prétendants ont-ils falsifié l'hydromel du palais ? On mesure des masses volumiques et on utilise une courbe d'étalonnage.",
+  gen() {
+    const c3 = pick([50, 100, 150]);
+    const m3 = rho(c3) * 0.01;
+    const c4 = pick([40, 60, 80, 120, 140, 160]);
+    const r4 = Math.round(rho(c4));
+    const c5 = pick([70, 90, 110, 130, 170]);
+    const m5 = Math.round(rho(c5) * 0.025 * 100) / 100;
+    const r5 = m5 / 0.025;
+
+    return [
+      qcm(
+        "Pour mesurer la masse volumique d'un hydromel, on :",
+        "pèse un volume connu précisément (pipette jaugée) puis on calcule ρ = m / V",
+        ["mesure seulement sa température",
+         "pèse le sucre et on divise par le volume d'eau",
+         "goûte et on compare au miel"],
+        ["ρ = m(solution) / V(solution)"],
+        "On prélève un volume précis (pipette jaugée), on le pèse (balance tarée), puis <b>ρ = m / V</b>."
+      ),
+
+      num(
+        `Un échantillon de V = 10,0 mL d'hydromel a une masse m = ${fx(m3, 2)} g. Calcule sa masse volumique en g/L.`,
+        rho(c3), 'g/L',
+        ["ρ = m / V avec V en litres.",
+         `V = 0,0100 L ; ρ = ${fx(m3, 2)} ÷ 0,0100`],
+        `ρ = ${fx(m3, 2)} / 0,0100 = <b>${fr(rho(c3), 0)} g/L</b>.`,
+        { tolA: 2 }
+      ),
+
+      qcm(
+        "Sur la courbe d'étalonnage ci-dessous, pourquoi la droite ne passe-t-elle pas par l'origine ?",
+        "car pour C<sub>m</sub> = 0 g/L, c'est de l'eau pure, de masse volumique 998 g/L",
+        ["car la mesure est fausse",
+         "car le sucre n'a pas de masse",
+         "car la masse volumique diminue quand on ajoute du sucre"],
+        ["Que vaut la masse volumique d'une solution qui ne contient pas de sucre ?"],
+        "Sans sucre, il reste l'eau : ρ ≈ 998 g/L (≈ 1 000 g/L). La masse volumique <b>augmente</b> avec la concentration en sucre.",
+        { vis: courbe() }
+      ),
+
+      num(
+        `L'hydromel servi à Pénélope a une masse volumique ρ = ${r4.toLocaleString('fr-FR')} g/L. Lis sur la courbe sa concentration en masse en sucre.`,
+        Math.round((r4 - 998) / 0.38), 'g/L',
+        ["Place ρ sur l'axe vertical, va horizontalement jusqu'à la droite…",
+         "…puis descends verticalement jusqu'à l'axe des C<sub>m</sub>."],
+        `Lecture graphique : ρ = ${r4.toLocaleString('fr-FR')} g/L correspond à <b>${Cm} ≈ ${Math.round((r4 - 998) / 0.38)} g/L</b> (réponses à ± 8 g/L acceptées).`,
+        { vis: courbe(), tolA: 8 }
+      ),
+
+      num(
+        `Épreuve finale ! Le prétendant Antinoos affirme que son hydromel est « riche en miel ». On pèse 25,0 mL de son hydromel : m = ${fx(m5, 2)} g. Détermine sa concentration en masse en sucre.`,
+        Math.round((r5 - 998) / 0.38), 'g/L',
+        ["Étape 1 : calcule ρ = m / V (V = 0,0250 L).",
+         "Étape 2 : lis la concentration sur la courbe."],
+        `ρ = ${fx(m5, 2)} / 0,0250 = ${fr(r5, 0)} g/L, puis lecture sur la courbe : <b>${Cm} ≈ ${Math.round((r5 - 998) / 0.38)} g/L</b> (± 8 g/L accepté).`,
+        { vis: courbe(), tolA: 8 }
+      )
+    ];
+  }
+}
+
+]; // fin de LEVELS
+
+// =====================================================================
+//  ITINÉRAIRE DU NAVIRE (positions approchées réelles)
+//  lvl = numéro de l'épreuve (0 à 7)
+//  nom + txt = escale intermédiaire avec un court récit
+//  sans rien = simple point de passage
+// =====================================================================
+const NODES = [
+  { x: 760, y: 184, nom: 'Troie' },
+  { x: 745, y: 160, lvl: 0 },                                    // Ismaros
+  { x: 742, y: 205 },
+  { x: 728, y: 265 },
+  { x: 700, y: 298, nom: 'Cap Malée',
+    txt: "Au cap Malée, au sud du Péloponnèse, Borée se lève : neuf jours de tempête poussent la flotte loin vers le sud, jusqu'aux côtes de Libye." },
+  { x: 412, y: 358, lvl: 1 },                                    // Lotophages
+  { x: 515, y: 281 },
+  { x: 512, y: 258, lvl: 2 },                                    // Cyclopes
+  { x: 517, y: 236 },
+  { x: 495, y: 220, lvl: 3 },                                    // Éole
+  { x: 517, y: 236 },
+  { x: 530, y: 250 },
+  { x: 620, y: 240, nom: "En vue d'Ithaque",
+    txt: "Dix jours de navigation : Ithaque est en vue ! Mais pendant qu'Ulysse dort, ses compagnons ouvrent l'outre d'Éole, croyant y trouver de l'or… Les vents s'échappent et ramènent le navire en arrière." },
+  { x: 530, y: 250 },
+  { x: 517, y: 236 },
+  { x: 495, y: 220 },
+  { x: 366, y: 141, nom: 'Lestrygons',
+    txt: "Chez les Lestrygons, géants mangeurs d'hommes, onze navires sont écrasés sous des rochers. Seul le navire d'Ulysse s'échappe." },
+  { x: 448, y: 147, lvl: 4 },                                    // Circé
+  { x: 481, y: 168, lvl: 5 },                                    // Sirènes
+  { x: 518, y: 232, lvl: 6 },                                    // Charybde et Scylla
+  { x: 519, y: 252 },
+  { x: 512, y: 283 },
+  { x: 470, y: 281, nom: 'Thrinacie',
+    txt: "Sur Thrinacie (la Sicile), les compagnons affamés mangent les vaches sacrées d'Hélios. Zeus foudroie le navire : Ulysse est le seul survivant." },
+  { x: 483, y: 300, nom: 'Ogygie (Calypso)',
+    txt: "Naufragé, Ulysse échoue sur l'île d'Ogygie, où la nymphe Calypso le retient pendant sept ans." },
+  { x: 607, y: 194, nom: 'Schérie (Phéaciens)',
+    txt: "Libéré sur ordre des dieux, Ulysse construit un radeau ; Poséidon le brise. Les Phéaciens (Corfou) l'accueillent et le ramènent enfin chez lui." },
+  { x: 640, y: 222, lvl: 7 }                                     // Ithaque
+];
+
+// position dans NODES de chaque épreuve
+const LV_NODE = LEVELS.map((_, i) => NODES.findIndex(n => n.lvl === i));
+
+// étiquettes des épreuves sur la carte : [décalage x, décalage y, alignement, texte]
+const LBL = [
+  [0, -15, 'middle', 'Ismaros'],
+  [0, 22, 'middle', 'Lotophages'],
+  [14, 10, 'start', 'Cyclopes'],
+  [-13, -6, 'end', 'Éole'],
+  [-13, 4, 'end', 'Circé'],
+  [0, -15, 'middle', 'Sirènes'],
+  [14, -4, 'start', 'Charybde & Scylla'],
+  [13, 6, 'start', 'ITHAQUE']
+];
+
+// =====================================================================
+//  ÉTAT DU JEU (sauvegardé dans le navigateur)
+// =====================================================================
+let S = null;          // état complet de la partie
+let sailing = false;   // vrai pendant l'animation du bateau
+let tick = null;       // minuteur du chrono
+
+function newState() {
+  return {
+    t0: Date.now(),    // début de la partie
+    tEnd: null,        // fin de la partie
+    pos: 0,            // position du bateau dans NODES
+    cur: null,         // épreuve en cours (ou null)
+    pending: { from: 0, to: LV_NODE[0] }, // navigation à faire
+    finalOk: false,
+    sent: false,
+    lv: LEVELS.map((_, i) => ({
+      status: i === 0 ? 'open' : 'locked', // locked / open / done
+      qs: null,        // questions générées
+      qi: 0,           // question en cours
+      pts: 0,
+      max: 0,
+      first: 0,        // réussies du premier coup
+      wrong: 0,        // nombre total d'erreurs
+      hints: 0,        // coups de pouce utilisés
+      t0: null,
+      time: 0
+    }))
+  };
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORE, JSON.stringify(S));
+  } catch (e) {
+    dbg('Sauvegarde impossible :', e.message);
+  }
+}
+
+function load() {
+  try {
+    const s = localStorage.getItem(STORE);
+    return s ? JSON.parse(s) : null;
+  } catch (e) {
+    dbg('Lecture de la sauvegarde impossible :', e.message);
+    return null;
+  }
+}
+
+function totalPts() {
+  return S ? S.lv.reduce((a, l) => a + l.pts, 0) : 0;
+}
+
+// =====================================================================
+//  AFFICHAGE GÉNÉRAL
+// =====================================================================
+function show(id) {
+  dbg('Écran affiché :', id);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  $('#' + id).classList.add('on');
+  window.scrollTo({ top: 0 });
+}
+
+function updateBar() {
+  $('#pts').textContent = totalPts();
+  $('#lettresBar').innerHTML = CODE.split('').map((c, i) => {
+    const gagnee = S && S.lv[i].status === 'done';
+    return gagnee ? `<b>${c}</b>` : `<b class="vide">·</b>`;
+  }).join('');
+}
+
+function startTick() {
+  clearInterval(tick);
+  tick = setInterval(() => {
+    if (S) {
+      $('#chrono').textContent = '⏳ ' + mmss((S.tEnd || Date.now()) - S.t0);
+    }
+  }, 1000);
+}
+
+// lecture à voix haute
+function speak(html) {
+  if (!('speechSynthesis' in window)) {
+    alert("La lecture audio n'est pas disponible sur ce navigateur.");
+    return;
+  }
+  speechSynthesis.cancel();
+  const t = plain(html)
+    .replace(/g\/L/g, ' grammes par litre')
+    .replace(/\bmL\b/g, ' millilitres')
+    .replace(/\bmg\b/g, ' milligrammes')
+    .replace(/(\d)\s?g\b/g, '$1 grammes')
+    .replace(/(\d)\s?L\b/g, '$1 litres')
+    .replace(/ρ/g, 'rho')
+    .replace(/Cm\b/g, 'C m')
+    .replace(/×/g, ' fois ')
+    .replace(/÷/g, ' divisé par ');
+  const u = new SpeechSynthesisUtterance(t);
+  u.lang = 'fr-FR';
+  u.rate = .92;
+  speechSynthesis.speak(u);
+}
+
+// =====================================================================
+//  CARTE
+// =====================================================================
+const svgNS = 'http://www.w3.org/2000/svg';
+
+function drawMap() {
+  // escales intermédiaires (petits ronds)
+  const g = $('#escales');
+  g.innerHTML = '';
+  NODES.forEach((n, i) => {
+    if (n.nom && n.lvl === undefined) {
+      const visitee = i <= S.pos;
+      const r = i === 0 ? 4.5 : 3.2;
+      const dy = i === 0 ? -6 : 12;
+      g.insertAdjacentHTML('beforeend', `
+        <g class="escale" opacity="${visitee ? 1 : .55}">
+          <circle cx="${n.x}" cy="${n.y}" r="${r}"/>
+          <text x="${n.x + 6}" y="${n.y + dy}">${n.nom}</text>
+        </g>`);
+    }
+  });
+
+  // médaillons des 8 épreuves
+  const e = $('#etapes');
+  e.innerHTML = '';
+  LEVELS.forEach((L, i) => {
+    const n = NODES[LV_NODE[i]];
+    const st = S.lv[i].status;
+    const [dx, dy, anc, lab] = LBL[i];
+    const cliquable = st === 'open' && !sailing && !S.pending;
+    const symbole = st === 'done' ? '✓' : (st === 'locked' ? '🔒' : i + 1);
+
+    const grp = document.createElementNS(svgNS, 'g');
+    grp.setAttribute('class', 'etape ' + st);
+    grp.innerHTML = `
+      <circle class="med" cx="${n.x}" cy="${n.y}" r="9"/>
+      <text class="num" x="${n.x}" y="${n.y + 3.5}" text-anchor="middle">${symbole}</text>
+      <text x="${n.x + dx}" y="${n.y + dy}" text-anchor="${anc}">${lab}</text>`;
+
+    if (cliquable) {
+      grp.setAttribute('tabindex', '0');
+      grp.setAttribute('role', 'button');
+      grp.setAttribute('aria-label', "Ouvrir l'épreuve " + (i + 1) + ' : ' + L.nom);
+      grp.onclick = () => openLevel(i);
+      grp.onkeydown = ev => {
+        if (ev.key === 'Enter' || ev.key === ' ') {
+          ev.preventDefault();
+          openLevel(i);
+        }
+      };
+    }
+    e.appendChild(grp);
+  });
+
+  // sillage et bateau
+  setTrail(S.pos);
+  const p = NODES[S.pos];
+  placeShip(p.x, p.y, false);
+
+  // journal de bord
+  $('#journal').innerHTML = LEVELS.map((L, i) => {
+    const l = S.lv[i];
+    const st = l.status;
+    let info;
+    if (st === 'done') {
+      info = `✓ ${l.pts}/${l.max} pts · ${duree(l.time)}`;
+    } else if (st === 'open') {
+      info = '⚓ Escale ouverte';
+    } else {
+      info = '🔒 Verrouillée';
+    }
+    const actif = st === 'open' && !sailing && !S.pending;
+    return `
+      <button class="${st}" ${actif ? '' : 'disabled'} onclick="openLevel(${i})">
+        <b>${i + 1}. ${L.nom}</b> — ${L.titre}
+        <small>${info}</small>
+      </button>`;
+  }).join('');
+
+  updateBar();
+}
+
+function setTrail(idx, extra) {
+  const pts = NODES.slice(0, idx + 1).map(n => n.x + ',' + n.y);
+  if (extra) {
+    pts.push(extra.x + ',' + extra.y);
+  }
+  $('#sillage').setAttribute('points', pts.join(' '));
+}
+
+function placeShip(x, y, flip) {
+  $('#navire').setAttribute('transform', `translate(${x} ${y - 4}) scale(.85)`);
+  $('#navireFlip').setAttribute('transform', flip ? 'scale(-1 1)' : '');
+}
+
+function showMap() {
+  show('sMap');
+  drawMap();
+  if (S.pending && !sailing) {
+    const p = S.pending;
+    setTimeout(() => sail(p.from, p.to), 400);
+  }
+}
+
+// affiche une escale intermédiaire et attend « Continuer »
+function escale(n) {
+  dbg('Escale intermédiaire :', n.nom);
+  return new Promise(res => {
+    $('#escTitre').textContent = '⚓ ' + n.nom;
+    $('#escTexte').textContent = n.txt;
+    $('#escaleModal').classList.add('on');
+    $('#escOk').focus();
+    $('#escLire').onclick = () => speak(n.txt);
+    $('#escOk').onclick = () => {
+      $('#escaleModal').classList.remove('on');
+      if (window.speechSynthesis) {
+        speechSynthesis.cancel();
+      }
+      res();
+    };
+  });
+}
+
+// déplace le bateau du point a au point b de NODES
+async function sail(a, b) {
+  dbg('Navigation du point', a, 'au point', b);
+  sailing = true;
+  drawMap();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (let i = a; i < b; i++) {
+    const p = NODES[i];
+    const q = NODES[i + 1];
+
+    if (!reduce) {
+      await new Promise(res => {
+        const len = Math.hypot(q.x - p.x, q.y - p.y);
+        const dur = Math.max(300, len * 11);
+        const t0 = performance.now();
+        const flip = q.x < p.x;
+        const step = t => {
+          const k = Math.min(1, (t - t0) / dur);
+          const x = p.x + (q.x - p.x) * k;
+          const y = p.y + (q.y - p.y) * k;
+          placeShip(x, y, flip);
+          setTrail(i, { x, y });
+          if (k < 1) {
+            requestAnimationFrame(step);
+          } else {
+            res();
+          }
+        };
+        requestAnimationFrame(step);
+      });
+    }
+
+    S.pos = i + 1;
+    setTrail(S.pos);
+    placeShip(q.x, q.y, q.x < p.x);
+
+    if (q.txt && i + 1 < b) {
+      await escale(q);
+    }
+  }
+
+  S.pos = b;
+  S.pending = null;
+  sailing = false;
+  save();
+  drawMap();
+  dbg('Arrivée au point', b);
+
+  const lv = NODES[b].lvl;
+  if (lv !== undefined && S.lv[lv].status === 'open') {
+    const g = document.querySelector('.etape.open');
+    if (g) {
+      g.focus();
+    }
+  }
+}
+
+// =====================================================================
+//  ÉPREUVES : ouverture, affichage, correction
+// =====================================================================
+function openLevel(i) {
+  if (sailing || S.pending || S.lv[i].status !== 'open') {
+    dbg('Épreuve', i + 1, 'non ouvrable (navigation en cours ou verrouillée)');
+    return;
+  }
+  const l = S.lv[i];
+  S.cur = i;
+
+  // première ouverture : on fabrique les questions
+  if (!l.qs) {
+    l.qs = LEVELS[i].gen().map(q => Object.assign(q, { wrong: 0, hu: 0, res: null, dis: [] }));
+    l.qi = 0;
+    l.max = l.qs.length * 100;
+    dbg('Questions générées pour l\'épreuve', i + 1, l.qs);
+  }
+  if (!l.t0) {
+    l.t0 = Date.now();
+  }
+  save();
+
+  const L = LEVELS[i];
+  dbg('Ouverture de l\'épreuve', i + 1, ':', L.nom);
+  $('#lvTitre').textContent = `Épreuve ${i + 1} · ${L.nom} — ${L.titre}`;
+  $('#lvLieu').textContent = '📍 ' + L.lieu;
+  $('#lvRecit').innerHTML = L.recit +
+    ` <button class="btn ghost" style="font-size:.8rem;padding:.2rem .5rem" onclick="speak(LEVELS[${i}].recit)" aria-label="Écouter le récit">🔊</button>`;
+  show('sLevel');
+  renderQ();
+}
+
+// zone de réponse selon le type de question
+function answerUI(q) {
+  if (q.t === 'qcm') {
+    const choix = q.choices.map((c, i) => {
+      const barre = q.dis.includes(i) ? 'barre' : '';
+      const bon = q.res && c === q.ans ? 'bon' : '';
+      const bloque = q.dis.includes(i) || q.res ? 'disabled' : '';
+      return `<label class="choice ${barre} ${bon}"><input type="radio" name="qc" value="${i}" ${bloque}><span>${c}</span></label>`;
+    }).join('');
+    return `<fieldset style="border:none;padding:0;margin:0"><legend class="sr-only">Choisis une réponse</legend>${choix}</fieldset>`;
+  }
+
+  if (q.t === 'num') {
+    return `
+      <label class="numl">
+        Ta réponse :
+        <input id="num" inputmode="decimal" autocomplete="off" ${q.res ? 'disabled' : ''} aria-describedby="unitLbl">
+        <span class="unit" id="unitLbl">${q.u}</span>
+      </label>`;
+  }
+
+  if (q.t === 'pair') {
+    return q.f.map((f, i) => {
+      const options = q.o.map(o => `<option>${o}</option>`).join('');
+      return `
+        <label class="pl">
+          ${f.l} :
+          <select id="p${i}" ${q.res ? 'disabled' : ''}><option value="">— choisir —</option>${options}</select>
+        </label>`;
+    }).join('');
+  }
+
+  if (q.t === 'order') {
+    const lignes = q.cur.map((it, i) => {
+      const hautOff = i === 0 || q.res ? 'disabled' : '';
+      const basOff = i === q.cur.length - 1 || q.res ? 'disabled' : '';
+      return `
+        <li>
+          <b>${i + 1}</b><span>${it}</span>
+          <button aria-label="Monter l'étape ${i + 1}" onclick="mv(${i},-1)" ${hautOff}>↑</button>
+          <button aria-label="Descendre l'étape ${i + 1}" onclick="mv(${i},1)" ${basOff}>↓</button>
+        </li>`;
+    }).join('');
+    return `<ol class="ordre" id="ordre">${lignes}</ol>`;
+  }
+}
+
+function curQ() {
+  const l = S.lv[S.cur];
+  return l.qs[l.qi];
+}
+
+// déplace une étape (question « remettre dans l'ordre »)
+function mv(i, d) {
+  const q = curQ();
+  const j = i + d;
+  [q.cur[i], q.cur[j]] = [q.cur[j], q.cur[i]];
+  save();
+  $('#ans').innerHTML = answerUI(q);
+  const li = document.querySelectorAll('#ordre li')[j];
+  if (li) {
+    const b = li.querySelectorAll('button')[d < 0 ? 0 : 1];
+    if (b && !b.disabled) {
+      b.focus();
+    }
+  }
+}
+
+function renderQ() {
+  const l = S.lv[S.cur];
+  const q = curQ();
+  dbg(`Énigme ${l.qi + 1}/${l.qs.length} (type ${q.t})`, q.t === 'num' ? '→ réponse attendue : ' + q.a + ' ' + q.u : '', q);
+
+  $('#prog').innerHTML = l.qs.map((x, i) => {
+    let c = '';
+    if (x.res) {
+      c = x.res.ok ? 'ok' : 'ko';
+    } else if (i === l.qi) {
+      c = 'cur';
+    }
+    return `<i class="${c}"></i>`;
+  }).join('');
+
+  $('#qprog').textContent = `Énigme ${l.qi + 1} / ${l.qs.length}`;
+
+  $('#qzone').innerHTML = `
+    <div class="qtext" id="qtext">${q.q}</div>
+    ${q.vis ? `<div class="vis">${q.vis}</div>` : ''}
+    <div id="ans">${answerUI(q)}</div>
+    <div class="qbtns" id="qbtns">
+      <button class="btn" id="bVal">Valider</button>
+      <button class="btn ghost" id="bHint">🦉 Coup de pouce d'Athéna (−10 pts)</button>
+      <button class="btn ghost" id="bLire">🔊 Écouter l'énigme</button>
+    </div>
+    <div id="hints"></div>
+    <div id="fb" aria-live="polite"></div>`;
+
+  $('#bVal').onclick = valider;
+  $('#bHint').onclick = indice;
+  $('#bLire').onclick = () => speak(q.q);
+
+  // réaffiche les coups de pouce déjà demandés
+  for (let k = 0; k < q.hu; k++) {
+    $('#hints').insertAdjacentHTML('beforeend', `<div class="hint">🦉 ${q.h[k]}</div>`);
+  }
+  if (q.hu >= q.h.length) {
+    $('#bHint').disabled = true;
+  }
+
+  const inp = $('#num');
+  if (inp) {
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        valider();
+      }
+    });
+  }
+
+  if (q.res) {
+    finQ(q);
+  }
+}
+
+function indice() {
+  const q = curQ();
+  if (q.res || q.hu >= q.h.length) {
+    return;
+  }
+  q.hu++;
+  S.lv[S.cur].hints++;
+  save();
+  dbg('Coup de pouce n°', q.hu);
+  $('#hints').insertAdjacentHTML('beforeend', `<div class="hint">🦉 ${q.h[q.hu - 1]}</div>`);
+  if (q.hu >= q.h.length) {
+    $('#bHint').disabled = true;
+  }
+}
+
+// lit la réponse de l'élève et dit si elle est juste
+function evaluer(q) {
+  if (q.t === 'qcm') {
+    const r = document.querySelector('input[name=qc]:checked');
+    if (!r) {
+      return { vide: 'Choisis une réponse.' };
+    }
+    return { ok: q.choices[+r.value] === q.ans, idx: +r.value, saisie: q.choices[+r.value] };
+  }
+
+  if (q.t === 'num') {
+    const saisie = $('#num').value;
+    const v = parseNum(saisie);
+    if (isNaN(v)) {
+      return { vide: "Écris un nombre (virgule ou point acceptés), sans l'unité." };
+    }
+    if (near(v, q)) {
+      return { ok: true, saisie };
+    }
+    let msg = '';
+    if (near(v * 1000, q) || near(v / 1000, q)) {
+      msg = "Ton résultat a les bons chiffres mais pas la bonne puissance de 10 : vérifie les conversions (mL ↔ L, mg ↔ g).";
+    } else if (q.inv !== undefined && near(v, q, q.inv)) {
+      msg = q.invMsg;
+    }
+    return { ok: false, msg, saisie };
+  }
+
+  if (q.t === 'pair') {
+    const vals = q.f.map((f, i) => $('#p' + i).value);
+    if (vals.some(v => !v)) {
+      return { vide: 'Complète toutes les listes.' };
+    }
+    if (vals[0] === vals[1]) {
+      return { ok: false, msg: "Le soluté et le solvant ne peuvent pas être la même espèce !", saisie: vals };
+    }
+    return { ok: q.f.every((f, i) => vals[i] === f.a), saisie: vals };
+  }
+
+  if (q.t === 'order') {
+    const n = q.cur.filter((x, i) => x === q.items[i]).length;
+    return {
+      ok: n === q.items.length,
+      msg: `${n} étape(s) sur ${q.items.length} sont à la bonne place.`,
+      saisie: q.cur
+    };
+  }
+}
+
+function valider() {
+  const q = curQ();
+  const l = S.lv[S.cur];
+  if (q.res) {
+    return;
+  }
+
+  const r = evaluer(q);
+  dbg('Réponse de l\'élève :', r.saisie, '→', r.vide ? 'vide' : (r.ok ? 'JUSTE' : 'FAUX'), r.msg || '');
+
+  if (r.vide) {
+    $('#fb').innerHTML = `<div class="fb ko">${r.vide}</div>`;
+    return;
+  }
+
+  if (r.ok) {
+    // points : 100 − 30 par erreur − 10 par coup de pouce (minimum 10)
+    const pts = Math.max(10, 100 - 30 * q.wrong - 10 * q.hu);
+    q.res = { ok: true, pts };
+    l.pts += pts;
+    if (q.wrong === 0) {
+      l.first++;
+    }
+    dbg('+', pts, 'points (total épreuve :', l.pts, ')');
+  } else {
+    q.wrong++;
+    l.wrong++;
+    if (q.t === 'qcm') {
+      q.dis.push(r.idx);
+    }
+
+    if (q.wrong >= 3) {
+      q.res = { ok: false, pts: 0 };
+      dbg('3 erreurs : solution affichée, 0 point');
+    } else {
+      save();
+      if (q.t === 'qcm') {
+        $('#ans').innerHTML = answerUI(q);
+      }
+      const reste = 3 - q.wrong;
+      const aide = q.hu < q.h.length ? "Un coup de pouce d'Athéna peut t'aider." : '';
+      $('#fb').innerHTML = `
+        <div class="fb ko">
+          ✗ Pas encore. ${r.msg ? r.msg + ' ' : ''}
+          Il te reste ${reste} essai${reste > 1 ? 's' : ''}. ${aide}
+        </div>`;
+      updateBar();
+      return;
+    }
+  }
+
+  save();
+  updateBar();
+  renderQ();
+}
+
+// texte de la bonne réponse (affiché après 3 erreurs)
+function solutionTxt(q) {
+  if (q.solTxt) {
+    return q.solTxt;
+  }
+  if (q.t === 'qcm') {
+    return q.ans;
+  }
+  if (q.t === 'num') {
+    return fr(q.a) + ' ' + q.u + (q.tolA ? ` (± ${q.tolA})` : '');
+  }
+  if (q.t === 'pair') {
+    return q.f.map(f => f.l + ' : ' + f.a).join(' ; ');
+  }
+  if (q.t === 'order') {
+    return q.items.map((x, i) => (i + 1) + '. ' + x).join('<br>');
+  }
+}
+
+// affichage de la correction et du bouton « suivante »
+function finQ(q) {
+  const l = S.lv[S.cur];
+  $('#bVal').style.display = 'none';
+  $('#bHint').style.display = 'none';
+
+  if (q.t === 'num') {
+    $('#num').value = q.res.ok ? '✓' : '';
+  }
+  if (q.t === 'pair') {
+    q.f.forEach((f, i) => {
+      $('#p' + i).value = f.a;
+    });
+  }
+  if (q.t === 'order') {
+    q.cur = q.items.slice();
+    $('#ans').innerHTML = answerUI(q);
+  }
+
+  let html;
+  if (q.res.ok) {
+    html = `<div class="fb ok">✓ Bravo ! +${q.res.pts} points.`;
+  } else {
+    html = `<div class="fb ko">Les trois essais sont épuisés. La bonne réponse était : <b>${solutionTxt(q)}</b>.`;
+  }
+  html += `<div class="expl">📜 ${q.e}</div></div>`;
+  $('#fb').innerHTML = html;
+
+  const last = l.qi === l.qs.length - 1;
+  const texte = last ? "🏁 Terminer l'épreuve" : 'Énigme suivante ▶';
+  $('#qbtns').insertAdjacentHTML('beforeend', `<button class="btn egee" id="bNext">${texte}</button>`);
+  $('#bNext').onclick = () => {
+    if (last) {
+      finNiveau();
+    } else {
+      l.qi++;
+      save();
+      renderQ();
+      window.scrollTo({ top: $('#sLevel').offsetTop, behavior: 'smooth' });
+    }
+  };
+  $('#bNext').focus();
+}
+
+function finNiveau() {
+  const i = S.cur;
+  const l = S.lv[i];
+  l.status = 'done';
+  l.time = Date.now() - l.t0;
+  S.cur = null;
+
+  if (i < LEVELS.length - 1) {
+    S.lv[i + 1].status = 'open';
+    S.pending = { from: LV_NODE[i], to: LV_NODE[i + 1] };
+  }
+  save();
+  updateBar();
+  dbg(`Épreuve ${i + 1} terminée :`, l.pts + '/' + l.max, 'pts,', l.first, 'du 1er coup,', duree(l.time));
+
+  $('#biTitre').textContent = `Épreuve ${i + 1} réussie : ${LEVELS[i].nom}`;
+  $('#biTexte').textContent = i < LEVELS.length - 1
+    ? "Les dieux te confient une lettre du code secret. Garde-la précieusement !"
+    : "Dernière lettre ! Il est temps de te présenter à Pénélope.";
+  $('#biLettre').textContent = LEVELS[i].lettre;
+  $('#biRes').innerHTML = `
+    <div><b>${l.pts}/${l.max}</b>points</div>
+    <div><b>${Math.round(l.pts / l.max * 100)} %</b>de réussite</div>
+    <div><b>${l.first}/${l.qs.length}</b>du premier coup</div>
+    <div><b>${duree(l.time)}</b>sur cette épreuve</div>`;
+
+  if (i < LEVELS.length - 1) {
+    $('#bLarguer').textContent = '⛵ Reprendre la mer';
+    $('#bLarguer').onclick = showMap;
+  } else {
+    $('#bLarguer').textContent = '🏛️ Entrer dans le palais';
+    $('#bLarguer').onclick = showFinal;
+  }
+  show('sBilan');
+}
+
+// =====================================================================
+//  ÉNIGME FINALE
+// =====================================================================
+function showFinal() {
+  if (S.finalOk) {
+    showRes();
+    return;
+  }
+  let t = shuffle(CODE.split(''));
+  while (t.join('') === CODE) {
+    t = shuffle(t);
+  }
+  $('#tuiles').innerHTML = t.map(c => `<span>${c}</span>`).join('');
+  $('#codeFb').innerHTML = '';
+  show('sFinal');
+  $('#code').focus();
+}
+
+$('#bCode').onclick = () => {
+  const v = $('#code').value
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+  dbg('Mot secret proposé :', v);
+
+  if (v === CODE) {
+    S.finalOk = true;
+    S.tEnd = Date.now();
+    save();
+    showRes();
+  } else {
+    $('#codeFb').innerHTML = `<div class="fb ko">Pénélope secoue la tête : « Ce n'est pas le mot. » Utilise toutes les lettres.</div>`;
+  }
+};
+
+$('#code').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    $('#bCode').click();
+  }
+});
+
+$('#bCodeIndice').onclick = () => {
+  $('#codeFb').innerHTML = `<div class="hint">🦉 C'est le prénom de l'épouse fidèle d'Ulysse, qui tissait le jour et défaisait sa toile la nuit pour faire patienter les prétendants.</div>`;
+};
+
+// =====================================================================
+//  RÉSULTATS
+// =====================================================================
+function bilan() {
+  const pts = totalPts();
+  const max = S.lv.reduce((a, l) => a + l.max, 0);
+  const nq = S.lv.reduce((a, l) => a + (l.qs ? l.qs.length : 0), 0);
+  const first = S.lv.reduce((a, l) => a + l.first, 0);
+  return {
+    pts,
+    max,
+    pct: Math.round(pts / max * 100),
+    first,
+    nq,
+    pctFirst: Math.round(first / nq * 100),
+    hints: S.lv.reduce((a, l) => a + l.hints, 0),
+    wrong: S.lv.reduce((a, l) => a + l.wrong, 0),
+    temps: (S.tEnd || Date.now()) - S.t0
+  };
+}
+
+function showRes() {
+  const b = bilan();
+  dbg('Bilan final :', b);
+  show('sRes');
+  updateBar();
+
+  $('#resGrid').innerHTML = `
+    <div><b>${b.pts}/${b.max}</b>points</div>
+    <div><b>${b.pct} %</b>de réussite</div>
+    <div><b>${b.pctFirst} %</b>de bonnes réponses du 1<sup>er</sup> coup</div>
+    <div><b>${duree(b.temps)}</b>temps total</div>
+    <div><b>${b.hints}</b>coup(s) de pouce</div>`;
+
+  const lignes = LEVELS.map((L, i) => {
+    const l = S.lv[i];
+    return `
+      <tr>
+        <td style="text-align:left">${i + 1}. ${L.nom}</td>
+        <td>${l.pts}/${l.max}</td>
+        <td>${Math.round(l.pts / l.max * 100)} %</td>
+        <td>${l.first}/${l.qs.length}</td>
+        <td>${duree(l.time)}</td>
+      </tr>`;
+  }).join('');
+  $('#resTable').innerHTML = `
+    <tr><th>Épreuve</th><th>Points</th><th>Réussite</th><th>1<sup>er</sup> coup</th><th>Temps</th></tr>
+    ${lignes}`;
+
+  if (S.sent) {
+    $('#envoiFb').innerHTML = '<div class="fb ok">✓ Tes résultats ont déjà été envoyés au professeur.</div>';
+  }
+}
+
+// =====================================================================
+//  ENVOI DES RÉSULTATS AU WORKER
+// =====================================================================
+$('#fEnvoi').onsubmit = async e => {
+  e.preventDefault();
+  if (S.sent) {
+    dbg('Résultats déjà envoyés : envoi ignoré.');
+    return;
+  }
+
+  const b = bilan();
+  const payload = {
+    jeu: JEU,
+    prenom: $('#fPrenom').value.trim(),
+    initiale: $('#fInit').value.trim().charAt(0).toUpperCase(),
+    classe: $('#fClasse').value.trim(),
+    score: b.pts,
+    scoreMax: b.max,
+    pourcentage: b.pct,
+    premierEssai: b.pctFirst,
+    temps: duree(b.temps),
+    tempsSecondes: Math.round(b.temps / 1000),
+    indices: b.hints,
+    erreurs: b.wrong,
+    niveaux: LEVELS.map((L, i) => ({
+      nom: `${i + 1}-${L.nom}`,
+      pts: S.lv[i].pts,
+      max: S.lv[i].max,
+      pct: Math.round(S.lv[i].pts / S.lv[i].max * 100),
+      premierEssai: `${S.lv[i].first}/${S.lv[i].qs.length}`,
+      temps: duree(S.lv[i].time)
+    }))
+  };
+
+  dbg('Envoi vers', WORKER_URL);
+  dbg('Données envoyées :', payload);
+
+  $('#bEnvoyer').disabled = true;
+  $('#envoiFb').innerHTML = '<div class="hint">📨 Envoi en cours…</div>';
+
+  try {
+    // corps en texte simple : pas de requête de « pré-vol » CORS
+    const r = await fetch(WORKER_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+    const texte = await r.text();
+    dbg('Réponse du worker :', r.status, texte);
+
+    if (!r.ok) {
+      throw new Error('HTTP ' + r.status + ' : ' + texte);
+    }
+
+    S.sent = true;
+    save();
+    $('#envoiFb').innerHTML = `<div class="fb ok">✓ Résultats envoyés ! Bravo ${payload.prenom} ${payload.initiale}., tu as ramené Ulysse à Ithaque.</div>`;
+  } catch (err) {
+    console.error('[ODYSSÉE] Échec de l\'envoi :', err);
+    $('#bEnvoyer').disabled = false;
+    $('#envoiFb').innerHTML = `
+      <div class="fb ko">
+        L'envoi a échoué (${err.message}). Vérifie ta connexion et réessaie.
+        Si cela ne marche toujours pas, montre cet écran à ton professeur.
+      </div>`;
+  }
+};
+
+// =====================================================================
+//  BOUTONS, OUTILS D'ACCESSIBILITÉ ET DÉMARRAGE
+// =====================================================================
+function reset() {
+  if (!confirm('Effacer ta progression et recommencer le voyage depuis Troie ?')) {
+    return;
+  }
+  try {
+    localStorage.removeItem(STORE);
+  } catch (e) {}
+  dbg('Progression effacée');
+  location.reload();
+}
+
+$('#bStart').onclick = () => {
+  S = newState();
+  save();
+  dbg('Nouvelle partie', S);
+  startTick();
+  showMap();
+};
+
+$('#bReprendre').onclick = () => {
+  startTick();
+  dbg('Reprise de la partie', S);
+  if (S.finalOk) {
+    showRes();
+  } else if (S.lv[LEVELS.length - 1].status === 'done') {
+    showFinal();
+  } else if (S.cur !== null) {
+    openLevel(S.cur);
+  } else {
+    showMap();
+  }
+};
+
+$('#bReset').onclick = reset;
+$('#bResetMap').onclick = reset;
+$('#bRejouer').onclick = reset;
+
+$('#bCarte').onclick = () => {
+  S.cur = null;
+  save();
+  showMap();
+};
+
+function toggleMemo() {
+  const on = $('#memo').classList.toggle('on');
+  $('#tMemo').setAttribute('aria-pressed', on);
+}
+$('#tMemo').onclick = toggleMemo;
+
+// taille du texte
+let fs = 18;
+try {
+  fs = +localStorage.getItem(STORE + '_fs') || 18;
+} catch (e) {}
+
+function setFs() {
+  document.documentElement.style.setProperty('--fs', fs + 'px');
+  try {
+    localStorage.setItem(STORE + '_fs', fs);
+  } catch (e) {}
+}
+$('#tPlus').onclick = () => {
+  fs = Math.min(26, fs + 2);
+  setFs();
+};
+$('#tMoins').onclick = () => {
+  fs = Math.max(14, fs - 2);
+  setFs();
+};
+
+// boutons bascule (police lisible, contraste, chrono masqué)
+function bascule(btn, cls) {
+  const on = document.body.classList.toggle(cls);
+  btn.setAttribute('aria-pressed', on);
+  try {
+    localStorage.setItem(STORE + '_' + cls, on ? '1' : '');
+  } catch (e) {}
+}
+
+[['#tLisible', 'legible'], ['#tContraste', 'contrast'], ['#tChrono', 'hidechrono']].forEach(([b, c]) => {
+  $(b).onclick = () => bascule($(b), c);
+  try {
+    if (localStorage.getItem(STORE + '_' + c)) {
+      document.body.classList.add(c);
+      $(b).setAttribute('aria-pressed', 'true');
+    }
+  } catch (e) {}
+});
+
+setFs();
+
+// au chargement : y a-t-il une partie sauvegardée ?
+S = load();
+dbg('Jeu chargé. Partie sauvegardée :', S ? 'oui' : 'non', S || '');
+if (S) {
+  $('#reprise').style.display = 'block';
+  $('#bStart').parentElement.style.display = 'none';
+  updateBar();
+  startTick();
+}
+</script>
+</body>
+</html>
