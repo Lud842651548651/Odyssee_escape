@@ -856,7 +856,8 @@ form.envoi input {
    Tailles en px : le PDF ne dépend pas du bouton A− / A+
    ========================================================= */
 .carnet {
-  width: 190mm;
+  width: 700px;
+  margin: 0 auto;
   padding: 0 6px 10px;
   background: #f4e7c9;
   color: var(--encre);
@@ -975,8 +976,7 @@ form.envoi input {
   height: auto;
 }
 .carnet .pdf-bloc {
-  break-inside: avoid;
-   padding-bottom: 6px;   /* ← ligne ajoutée */
+  break-inside: avoid;   /* un bloc n'est jamais coupé entre deux pages */
 }
 .carnet .c-nouvelle-page {
   break-before: page;
@@ -1034,11 +1034,37 @@ form.envoi input {
   display: none;
 }
 
-/* Secours si le PDF ne peut pas être créé : impression du carnet */
+/* Impression du carnet (moteur PDF de Chrome) :
+   seule la zone #impression est imprimée, sur fond papyrus,
+   avec une frise en haut et en bas de chaque page et le numéro de page */
 #impression {
   display: none;
 }
 @media print {
+  @page {
+    size: A4;
+    margin: 12mm 0;
+    background: #f4e7c9;
+    @top-left { content: ''; background: linear-gradient(#7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm); }
+    @top-center { content: ''; background: linear-gradient(#7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm); }
+    @top-right { content: ''; background: linear-gradient(#7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm); }
+    @bottom-left { content: ''; background: linear-gradient(to top, #7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm); }
+    @bottom-right { content: ''; background: linear-gradient(to top, #7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm); }
+    @bottom-center {
+      content: "L'Odyssée des Solutions · Carnet de bord · page " counter(page) " / " counter(pages);
+      font: italic 8.5pt Georgia, serif;
+      color: #5a4632;
+      background: linear-gradient(to top, #7e2f1b 0 4mm, #b8901f 4mm 4.8mm, transparent 4.8mm);
+    }
+  }
+  html,
+  body.impression {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #f4e7c9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   body.impression > *:not(#impression) {
     display: none !important;
   }
@@ -1419,11 +1445,11 @@ form.envoi input {
 
     <h3>📄 Mon carnet de bord</h3>
     <p>
-      Quand tu envoies tes résultats, ton <b>carnet de bord</b> se télécharge automatiquement en PDF :
-      ton bilan et tous les rappels de cours du voyage (I à VIII), avec le mémo des formules.
-      Garde-le pour réviser !
+      Quand tu envoies tes résultats, la fenêtre d'impression de ton <b>carnet de bord</b> s'ouvre :
+      ton bilan, des conseils de révision et tous les rappels de cours du voyage (I à VIII), avec le mémo des formules.
+      Choisis « <b>Enregistrer au format PDF</b> » puis clique sur « Enregistrer ». Garde-le pour réviser !
     </p>
-    <button class="btn ghost" id="bCarnet">📄 Télécharger à nouveau mon carnet de bord</button>
+    <button class="btn ghost" id="bCarnet">📄 Ouvrir à nouveau mon carnet de bord</button>
     <div id="pdfFb" aria-live="polite" style="margin-top:.7rem"></div>
 
     <p class="centre" style="margin-top:1.2rem">
@@ -1477,7 +1503,7 @@ const VERSIONS_MAX = 3;               // nombre de versions d'une même énigme
 const POINTS = { 1: 100, 2: 60, 3: 30 }; // points selon la version réussie
 const COUT_INDICE = [10, 30];         // 1er coup de pouce −10, 2e coup de pouce −30 (total −40)
 const ENIGMES_MAX = 4;                // nombre d'énigmes tirées par épreuve (sauf si l'épreuve a son propre « nb »)
-const DEBUG = false;                   // false = plus de messages dans la console
+const DEBUG = true;                   // false = plus de messages dans la console
 
 // Messages de débogage (console du navigateur : F12 > Console)
 function dbg(...args) {
@@ -3404,8 +3430,10 @@ function renderQ() {
   if (inp) {
     inp.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
-        e.preventDefault();   // ← ligne à ajouter
-         valider();
+        // empêche la touche Entrée d'« appuyer » aussi sur le bouton
+        // « Énigme suivante » qui reçoit le focus juste après la validation
+        e.preventDefault();
+        valider();
       }
     });
   }
@@ -3744,42 +3772,16 @@ function showRes() {
     $('#envoiFb').innerHTML = '<div class="fb ok">✓ Tes résultats ont déjà été envoyés au professeur.</div>';
   }
 
-  // on prépare la bibliothèque PDF pendant que l'élève remplit le formulaire
-  chargerHtml2pdf().catch(err => dbg('Préchargement PDF impossible :', err.message));
 }
 
 // =====================================================================
 //  CARNET DE BORD EN PDF
 //  Bilan de l'élève + rappels de cours I à VIII + mémo des formules (IX)
-//  Bibliothèque html2pdf chargée seulement quand on en a besoin.
+//  Le carnet est imprimé avec le moteur de Chrome : l'élève choisit
+//  « Enregistrer au format PDF ». Aucune bibliothèque externe.
 // =====================================================================
-const HTML2PDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
 const ROMAINS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
-let html2pdfPromesse = null;
-let carnetAutoFait = false; // le téléchargement automatique n'a lieu qu'une fois
-
-function chargerHtml2pdf() {
-  if (window.html2pdf) {
-    return Promise.resolve();
-  }
-  if (!html2pdfPromesse) {
-    dbg('Chargement de la bibliothèque PDF…');
-    html2pdfPromesse = new Promise((ok, echec) => {
-      const s = document.createElement('script');
-      s.src = HTML2PDF_URL;
-      s.onload = () => {
-        dbg('Bibliothèque PDF chargée');
-        ok();
-      };
-      s.onerror = () => {
-        html2pdfPromesse = null;
-        echec(new Error('la bibliothèque PDF ne s\'est pas chargée (connexion ?)'));
-      };
-      document.head.appendChild(s);
-    });
-  }
-  return html2pdfPromesse;
-}
+let carnetAutoFait = false; // l'ouverture automatique n'a lieu qu'une fois
 
 // protège le texte tapé par l'élève
 function esc(t) {
@@ -3955,75 +3957,46 @@ function nomFichier(eleve) {
   return `Odyssee_carnet_${propre(eleve.prenom)}_${propre(eleve.initiale)}_${propre(eleve.classe)}.pdf`;
 }
 
-// décore chaque page : marges couleur papyrus, frise en haut et en bas, numéro de page
-function decorerPages(pdf, eleve) {
-  const n = pdf.internal.getNumberOfPages();
-  for (let i = 1; i <= n; i++) {
-    pdf.setPage(i);
-    pdf.setFillColor(244, 231, 201);
-    pdf.rect(0, 0, 210, 12, 'F');
-    pdf.rect(0, 285, 210, 12, 'F');
-    pdf.rect(0, 0, 10, 297, 'F');
-    pdf.rect(200, 0, 10, 297, 'F');
-    pdf.setFillColor(126, 47, 27);
-    pdf.rect(0, 0, 210, 4, 'F');
-    pdf.rect(0, 293, 210, 4, 'F');
-    pdf.setFillColor(184, 144, 31);
-    pdf.rect(0, 4, 210, .8, 'F');
-    pdf.rect(0, 292.2, 210, .8, 'F');
-    pdf.setFont('times', 'italic');
-    pdf.setFontSize(9);
-    pdf.setTextColor(90, 70, 50);
-    pdf.text(`L'Odyssée des Solutions · Carnet de bord de ${eleve.prenom} ${eleve.initiale}. · page ${i} / ${n}`, 105, 289.5, { align: 'center' });
-  }
-}
-
-// secours : on imprime le carnet (l'élève choisit « Enregistrer en PDF »)
-function imprimerCarnet(el) {
-  const zone = $('#impression');
-  zone.innerHTML = '';
-  zone.appendChild(el);
-  document.body.classList.add('impression');
-  window.print();
-  setTimeout(() => {
-    document.body.classList.remove('impression');
-    zone.innerHTML = '';
-  }, 1000);
-}
-
+// ouvre la fenêtre d'impression avec le carnet seul
 async function telechargerCarnet(eleve) {
   dbg('Création du carnet de bord pour', eleve);
-  $('#pdfFb').innerHTML = '<div class="hint">📄 Préparation de ton carnet de bord (PDF)… patiente quelques secondes.</div>';
-  const el = construireCarnet(eleve);
-  const defilement = window.scrollY; // le PDF doit commencer en haut de la page 1
+  $('#pdfFb').innerHTML = '<div class="hint">📄 Préparation de ton carnet de bord…</div>';
   try {
+    const el = construireCarnet(eleve);
     await svgEnImages(el);
-    await chargerHtml2pdf();
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }
-    const options = {
-      margin: [12, 10, 12, 10],
-      filename: nomFichier(eleve),
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, backgroundColor: '#f4e7c9', useCORS: true, scrollX: 0, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['avoid-all', 'css'] }
+
+    // le carnet prend la place de la page pendant l'impression
+    const zone = $('#impression');
+    zone.innerHTML = '';
+    zone.appendChild(el);
+    await Promise.all([...zone.querySelectorAll('img')].map(img => img.decode().catch(() => {})));
+
+    // le titre de la page devient le nom proposé pour le fichier PDF
+    const ancienTitre = document.title;
+    document.title = nomFichier(eleve).replace(/\.pdf$/, '');
+    document.body.classList.add('impression');
+
+    const nettoyer = () => {
+      document.body.classList.remove('impression');
+      document.title = ancienTitre;
+      zone.innerHTML = '';
+      dbg('Fenêtre d\'impression fermée');
     };
-    window.scrollTo(0, 0);
-    await html2pdf().set(options).from(el).toPdf().get('pdf').then(pdf => decorerPages(pdf, eleve)).save();
-    window.scrollTo(0, defilement);
-    dbg('Carnet téléchargé :', options.filename);
-    $('#pdfFb').innerHTML = `<div class="fb ok">✓ Ton carnet de bord a été téléchargé (${esc(options.filename)}). Regarde dans tes téléchargements.</div>`;
-  } catch (err) {
-    window.scrollTo(0, defilement);
-    console.error('[ODYSSÉE] Échec du PDF :', err);
+    window.addEventListener('afterprint', nettoyer, { once: true });
+
     $('#pdfFb').innerHTML = `
-      <div class="fb ko">
-        Le PDF n'a pas pu être créé (${esc(err.message)}).
-        <button class="btn ghost" id="bImprimer" style="margin-top:.4rem">🖨️ Imprimer mon carnet (choisir « Enregistrer en PDF »)</button>
+      <div class="hint">
+        📄 Dans la fenêtre qui s'ouvre, choisis la destination « <b>Enregistrer au format PDF</b> », puis clique sur « <b>Enregistrer</b> ».<br>
+        Si les couleurs n'apparaissent pas : « Plus de paramètres » → coche « Graphiques d'arrière-plan ».
       </div>`;
-    $('#bImprimer').onclick = () => imprimerCarnet(construireCarnet(eleve));
+    dbg('Ouverture de la fenêtre d\'impression :', document.title);
+    window.print();
+  } catch (err) {
+    console.error('[ODYSSÉE] Échec du carnet :', err);
+    $('#pdfFb').innerHTML = `<div class="fb ko">Le carnet n'a pas pu être préparé (${esc(err.message)}). Réessaie avec le bouton ci-dessus.</div>`;
   }
 }
 
