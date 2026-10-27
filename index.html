@@ -856,7 +856,7 @@ form.envoi input {
    Tailles en px : le PDF ne dépend pas du bouton A− / A+
    ========================================================= */
 .carnet {
-  width: 760px;
+  width: 700px;
   padding: 0 6px 10px;
   background: #f4e7c9;
   color: var(--encre);
@@ -942,23 +942,87 @@ form.envoi input {
 }
 .carnet .resgrid {
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin: 8px 0;
+  gap: 6px;
+  margin: 6px 0;
 }
 .carnet .resgrid div {
-  padding: 6px;
-  font-size: 13px;
+  padding: 4px;
+  font-size: 11px;
 }
 .carnet .resgrid b {
-  font-size: 19px;
+  font-size: 15px;
+}
+.carnet .c-resultats .tableau {
+  width: 100%;
+  font-size: 10.5px;
+  table-layout: fixed;
+}
+.carnet .c-resultats .tableau th,
+.carnet .c-resultats .tableau td {
+  padding: 2px 4px;
+}
+.carnet .c-resultats .tableau th:first-child {
+  width: 30%;
 }
 .carnet .tableau {
-  width: 100%;
-  font-size: 13px;
+  font-size: 12px;
+}
+.carnet .cours svg,
+.carnet .cours img.c-image {
+  display: block;
+  margin: 8px auto;
+  max-width: 440px;
+  height: auto;
+}
+.carnet .pdf-bloc {
+  break-inside: avoid;
+}
+.carnet .c-nouvelle-page {
+  break-before: page;
+  page-break-before: always;
+  margin-top: 0;
+}
+.carnet .c-nouvelle-page h3 {
+  margin-top: 0;
+}
+.carnet img.c-image {
+  border: 1px solid #8a6a3b;
+  border-radius: 4px;
 }
 .carnet .memo-f {
   font-size: 16px;
   margin: 6px 40px;
+}
+.carnet .c-conseils h3 {
+  font-size: 17px;
+  margin: 4px 0 6px;
+}
+.carnet .c-niveau {
+  border-left: 5px solid;
+  border-radius: 4px;
+  background: #fffaf0;
+  padding: 5px 10px;
+  margin: 5px 0;
+  font-size: 13px;
+}
+.carnet .c-niveau b.c-etiquette {
+  display: inline-block;
+  color: #fff;
+  border-radius: 3px;
+  padding: 0 6px;
+  margin-right: 6px;
+  font-size: 11px;
+}
+.carnet .c-priorite { border-color: #a8302a; }
+.carnet .c-priorite b.c-etiquette { background: #a8302a; }
+.carnet .c-consolider { border-color: #b8901f; }
+.carnet .c-consolider b.c-etiquette { background: #9a7414; }
+.carnet .c-acquis { border-color: #5f6b2e; }
+.carnet .c-acquis b.c-etiquette { background: #5f6b2e; }
+.carnet .c-conseils ul {
+  margin: 4px 0;
+  padding-left: 20px;
+  font-size: 13px;
 }
 .carnet .c-verdict {
   text-align: center;
@@ -1573,6 +1637,35 @@ function tube(label, c, inconnu) {
     </div>`;
 }
 
+// image de l'échelle de teinte (pour les rappels de cours et le PDF)
+// inconnu : concentration du tube X à placer dans l'échelle (facultatif)
+function echelleSVG(inconnu) {
+  const concs = [2, 4, 6, 8, 10];
+  const larg = 46, ecart = 30, haut = 120, x0 = 20, y0 = 14;
+  let g = '';
+  const unTube = (x, c, label, rouge) => {
+    const bord = rouge ? '#a8452a' : '#5d5d5d';
+    const ep = rouge ? 3 : 2;
+    g += `<path d="M${x} ${y0} V${y0 + haut - 23} A23 23 0 0 0 ${x + larg} ${y0 + haut - 23} V${y0}" fill="#ffffff" stroke="${bord}" stroke-width="${ep}"/>`;
+    g += `<path d="M${x + ep / 2} ${y0 + 26} V${y0 + haut - 23} A${23 - ep / 2} ${23 - ep / 2} 0 0 0 ${x + larg - ep / 2} ${y0 + haut - 23} V${y0 + 26} Z" fill="${bleu(c)}"/>`;
+    g += `<text x="${x + larg / 2}" y="${y0 + haut + 20}" text-anchor="middle" font-size="14" font-weight="bold" fill="#2b2118">${label}</text>`;
+  };
+  concs.forEach((c, i) => unTube(x0 + i * (larg + ecart), c, c + ' g/L', false));
+  let W = x0 + concs.length * (larg + ecart);
+  if (inconnu !== undefined) {
+    g += `<line x1="${W - ecart / 2 + 6}" y1="${y0}" x2="${W - ecart / 2 + 6}" y2="${y0 + haut + 24}" stroke="#5a4632" stroke-width="2"/>`;
+    W += 14;
+    unTube(W, inconnu, 'X', true);
+    W += larg + 20;
+  }
+  const H = y0 + haut + 32;
+  return `
+    <svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="max-width:100%;height:auto;display:block;margin:.5rem auto;background:#ffffff;border:1px solid #8a6a3b;border-radius:4px"
+         role="img" aria-label="Échelle de teinte : tubes de sulfate de cuivre à 2, 4, 6, 8 et 10 g/L, de plus en plus bleus${inconnu !== undefined ? ', et le tube X à comparer' : ''}">
+      ${g}
+    </svg>`;
+}
+
 function echelle(extra) {
   const tubes = [2, 4, 6, 8, 10].map(c => tube(c + ' g/L', c)).join('');
   return `
@@ -1589,7 +1682,8 @@ const rho = c => 998 + 0.38 * c;
 // courbe d'étalonnage ρ = f(Cm)
 // lecture : valeur de ρ à lire sur la courbe (traits pointillés), facultatif
 // petit   : true pour une version plus petite (rappel de cours)
-function courbe(lecture, petit) {
+// sansTableau : true pour ne pas répéter le tableau de valeurs
+function courbe(lecture, petit, sansTableau) {
   const W = 500, H = 320, ml = 62, mr = 16, mt = 14, mb = 48;
   const pw = W - ml - mr, ph = H - mt - mb;
   const X = c => ml + c / 200 * pw;
@@ -1638,9 +1732,6 @@ function courbe(lecture, petit) {
   g += `<text x="${ml + pw / 2}" y="${H - 6}" text-anchor="middle" font-size="13" font-weight="bold">Concentration en masse en sucre Cm (g/L)</text>`;
   g += `<text transform="translate(14 ${mt + ph / 2}) rotate(-90)" text-anchor="middle" font-size="13" font-weight="bold">Masse volumique ρ (g/L)</text>`;
 
-  const lignesC = [0, 50, 100, 150, 200].map(c => `<td>${c}</td>`).join('');
-  const lignesR = [0, 50, 100, 150, 200].map(c => `<td>${rho(c).toLocaleString('fr-FR')}</td>`).join('');
-
   let description = "Courbe d'étalonnage : droite passant par les points (0 ; 998), (50 ; 1017), (100 ; 1036), (150 ; 1055) et (200 ; 1074)";
   if (lecture) {
     description += `. Lecture : pour ρ = ${lecture} g/L, on va horizontalement jusqu'à la droite puis on descend : Cm ≈ ${Math.round((lecture - 998) / 0.38)} g/L`;
@@ -1648,9 +1739,17 @@ function courbe(lecture, petit) {
 
   return `
     <svg viewBox="0 0 ${W} ${H}" style="max-width:${petit ? 440 : 520}px;width:100%;background:#fffef8;border:1px solid #8a6a3b;border-radius:4px"
-         role="img" aria-label="${description}">
+         width="${W}" height="${H}" role="img" aria-label="${description}">
       ${g}
     </svg>
+    ${sansTableau ? '' : tableauEtalonnage()}`;
+}
+
+// tableau de valeurs de la gamme d'étalonnage (masse volumique de l'hydromel)
+function tableauEtalonnage() {
+  const lignesC = [0, 50, 100, 150, 200].map(c => `<td>${c}</td>`).join('');
+  const lignesR = [0, 50, 100, 150, 200].map(c => `<td>${rho(c).toLocaleString('fr-FR')}</td>`).join('');
+  return `
     <details style="margin-top:.4rem">
       <summary>Voir le tableau de valeurs de la gamme d'étalonnage</summary>
       <table class="tableau">
@@ -1688,6 +1787,7 @@ const LEVELS = [
 {
   nom: 'Ismaros',
   notion: "Soluté, solvant et solution",
+  conseil: "Relis la partie I. Le solvant est l'espèce qui dissout, en général majoritaire, et il n'y en a qu'un. Les solutés sont les espèces dissoutes : il peut y en avoir plusieurs. Le solvant n'est pas toujours l'eau.",
   lieu: 'Cité des Cicones, en Thrace',
   titre: 'Les amphores de Maron',
   lettre: 'P',
@@ -1788,6 +1888,7 @@ const LEVELS = [
 {
   nom: 'Lotophages',
   notion: "Préparer une solution par dissolution",
+  conseil: "Relis la partie II. Récite les 3 étapes de la dissolution sans regarder. Retiens que le volume de la solution est celui de la fiole jaugée. Ne confonds plus C<sub>m</sub> (masse de soluté par litre) et ρ (masse de toute la solution par litre).",
   lieu: "Côte de Libye (l'île de Djerba, Tunisie actuelle)",
   titre: "Le remède contre l'oubli",
   lettre: 'E',
@@ -1899,6 +2000,8 @@ const LEVELS = [
 {
   nom: 'Île des Cyclopes',
   notion: "Calculer une concentration en masse",
+  pdfNouvellePage: true,  // dans le carnet PDF, la partie III commence sur une nouvelle page
+  conseil: "Relis la partie III. Avant chaque calcul, convertis : V en L (÷ 1 000 si en mL), m en g (÷ 1 000 si en mg). Puis C<sub>m</sub> = m / V en g/L. Refais les deux exemples du cours sans regarder la correction.",
   lieu: "Côte orientale de la Sicile, au pied de l'Etna",
   titre: 'Le piège de Polyphème',
   lettre: 'N',
@@ -2021,6 +2124,7 @@ const LEVELS = [
 {
   nom: "Île d'Éole",
   notion: "Utiliser C<sub>m</sub> = m / V dans tous les sens",
+  conseil: "Relis la partie IV. Apprends les trois écritures : C<sub>m</sub> = m / V, m = C<sub>m</sub> × V et V = m / C<sub>m</sub>. Après chaque calcul, demande-toi si le résultat est vraisemblable (quelques grammes dans un flacon, pas des kilos).",
   lieu: 'Îles Éoliennes, au nord de la Sicile',
   titre: "L'outre des vents",
   lettre: 'E',
@@ -2132,6 +2236,7 @@ const LEVELS = [
 {
   nom: 'Île de Circé',
   notion: "La dilution",
+  conseil: "Relis la partie V. Apprends C<sub>mère</sub> × V<sub>mère</sub> = C<sub>fille</sub> × V<sub>fille</sub>, puis entraîne-toi à isoler C<sub>fille</sub>, V<sub>mère</sub> et V<sub>fille</sub>. Vérifie toujours que C<sub>fille</sub> &lt; C<sub>mère</sub> et V<sub>mère</sub> &lt; V<sub>fille</sub>. Récite le protocole et sa verrerie (pipette jaugée, fiole jaugée).",
   lieu: 'Aiaié (le mont Circé, au sud de Rome)',
   titre: 'La potion de la magicienne',
   lettre: 'L',
@@ -2291,6 +2396,7 @@ const LEVELS = [
 {
   nom: 'Charybde et Scylla',
   notion: "L'échelle de teinte",
+  conseil: "Relis la partie VI et regarde l'image de l'échelle. Une échelle de teinte donne un encadrement entre deux tubes. Si la solution a été diluée F fois, multiplie la concentration lue par F.",
   lieu: 'Détroit de Messine, entre Sicile et Italie',
   titre: 'Le détroit des teintes',
   lettre: 'P',
@@ -2305,7 +2411,8 @@ const LEVELS = [
       <li>On place la solution inconnue à côté des tubes de l'échelle (mêmes tubes, même hauteur de liquide, sur fond blanc).</li>
       <li>On repère les deux tubes qui l'<b>encadrent</b> : la concentration est entre leurs deux valeurs.</li>
     </ol>
-    <div class="exemple"><b>Exemple :</b> X est plus foncé que le tube à 4 g/L et plus clair que celui à 6 g/L : 4 g/L &lt; C<sub>m</sub> &lt; 6 g/L.</div>
+    ${echelleSVG(5)}
+    <div class="exemple"><b>Exemple :</b> sur l'image ci-dessus, le tube X (entouré en rouge) est plus foncé que le tube à 4 g/L et plus clair que celui à 6 g/L : 4 g/L &lt; C<sub>m</sub> &lt; 6 g/L.</div>
     <h4>Solution trop foncée ?</h4>
     <p>On la dilue d'un facteur F connu, on la compare à l'échelle, puis on multiplie par F.</p>
     <div class="exemple">Diluée 10 fois, elle a la teinte du tube à 3 g/L : avant dilution, C<sub>m</sub> = 10 × 3 = <b>30 g/L</b>.</div>
@@ -2421,6 +2528,7 @@ const LEVELS = [
 {
   nom: 'Thrinacie',
   notion: "La concentration maximale",
+  conseil: "Relis la partie VII. Dans un tableau de mesures, repère la dernière masse entièrement dissoute : C<sub>max</sub> ≈ m / V. Pour la masse maximale qu'on peut dissoudre : m<sub>max</sub> = C<sub>max</sub> × V. Au-delà, il reste un dépôt : la solution est saturée.",
   lieu: "L'île du Soleil (la Sicile, côte des marais salants de Trapani)",
   titre: "Le sel d'Hélios",
   lettre: 'O',
@@ -2558,6 +2666,7 @@ const LEVELS = [
 {
   nom: 'Ithaque',
   notion: "L'étalonnage par la masse volumique",
+  conseil: "Relis la partie VIII et refais l'exemple de 1 036 g/L. Calcule d'abord ρ = m / V (V en L), puis lis C<sub>m</sub> sur la courbe : axe vertical → droite → axe horizontal. Entraîne-toi aussi à lire dans l'autre sens.",
   lieu: "Île d'Ithaque, mer Ionienne",
   titre: "L'hydromel des prétendants",
   lettre: 'E',
@@ -2574,8 +2683,15 @@ const LEVELS = [
     <div class="exemple"><b>Exemple :</b> 10,0 mL d'hydromel pèsent 10,36 g.<br>
       ρ = 10,36 / 0,0100 = <b>1 036 g/L</b>.</div>
     <h4>La courbe d'étalonnage</h4>
-    <p>On mesure ρ pour des hydromels <b>étalons</b> de concentrations connues (0, 50, 100, 150 et 200 g/L), puis on trace la masse volumique ρ en fonction de la concentration en masse C<sub>m</sub>. On obtient une droite : ρ augmente quand C<sub>m</sub> augmente.</p>
-    <p>À C<sub>m</sub> = 0 g/L, c'est de l'eau pure : ρ ≈ 998 g/L. La droite ne passe donc pas par l'origine.</p>
+    <div class="c-unite">
+      <p>On mesure ρ pour des hydromels <b>étalons</b> de concentrations connues (0, 50, 100, 150 et 200 g/L), puis on trace la masse volumique ρ en fonction de la concentration en masse C<sub>m</sub>. On obtient une droite : ρ augmente quand C<sub>m</sub> augmente.</p>
+      <p>À C<sub>m</sub> = 0 g/L, c'est de l'eau pure : ρ ≈ 998 g/L. La droite ne passe donc pas par l'origine.</p>
+      <div class="c-figure">
+        <p><i>Courbe d'étalonnage de Télémaque : masse volumique ρ de l'hydromel en fonction de sa concentration en masse en sucre C<sub>m</sub>.</i></p>
+        ${courbe(undefined, true, true)}
+      </div>
+    </div>
+    ${tableauEtalonnage()}
     <h4>Lire la concentration d'une solution inconnue</h4>
     <ol>
       <li>Je place la valeur de ρ mesurée sur l'axe vertical.</li>
@@ -2586,7 +2702,7 @@ const LEVELS = [
       ① On part de 1 036 g/L sur l'axe vertical et on va horizontalement jusqu'à la droite.
       ② On descend verticalement jusqu'à l'axe horizontal : on lit <b>C<sub>m</sub> ≈ 100 g/L</b>.<br>
       Cet hydromel contient donc environ <b>100 g de sucre de miel par litre</b>.</div>
-    ${courbe(1036, true)}
+    ${courbe(1036, true, true)}
     <p>Si ρ est en dehors de la courbe, on ne prolonge pas au hasard : on dilue la solution d'un facteur connu.</p>`,
   slots: [
     // Énigme 1 : principe de la mesure et de la courbe
@@ -3668,25 +3784,85 @@ function esc(t) {
   return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-// découpe un rappel de cours en blocs (un bloc par sous-titre h4),
-// numérote les sous-titres 1., 2., 3.…
+// découpe un rappel de cours en petits blocs insécables pour le PDF :
+// un sous-titre h4 reste collé à l'élément qui le suit,
+// chaque autre élément (texte, exemple, graphique, tableau) est un bloc à part
+// → le PDF remplit mieux les pages et évite les grands trous.
+// Les sous-titres sont numérotés 1., 2., 3.…
 function blocsDuCours(html) {
   const tmp = document.createElement('div');
   tmp.innerHTML = html.replace(/<details/g, '<details open');
   const blocs = [];
   let num = 0;
+  let titreEnAttente = '';
   [...tmp.children].forEach(enfant => {
     if (enfant.tagName === 'H4') {
       num++;
       enfant.innerHTML = `${num}. ${enfant.innerHTML}`;
-      blocs.push([]);
+      titreEnAttente = enfant.outerHTML;
+      return;
     }
-    if (!blocs.length) {
-      blocs.push([]);
-    }
-    blocs[blocs.length - 1].push(enfant.outerHTML);
+    blocs.push(titreEnAttente + enfant.outerHTML);
+    titreEnAttente = '';
   });
-  return blocs.map(b => b.join('\n'));
+  if (titreEnAttente) {
+    blocs.push(titreEnAttente);
+  }
+  return blocs;
+}
+
+// conseils de révision personnalisés, d'après les résultats de chaque épreuve
+//  - à revoir en priorité : moins de 60 % ou une énigme ratée dans toutes ses versions
+//  - à consolider : moins de 90 %, une énigme refaite ou au moins 2 coups de pouce
+//  - acquis : le reste
+function conseilsRevision() {
+  const b = bilan();
+  const priorite = [];
+  const consolider = [];
+  const acquis = [];
+  LEVELS.forEach((L, i) => {
+    const l = S.lv[i];
+    const pct = Math.round(l.pts / l.max * 100);
+    const titre = `${ROMAINS[i]}. ${L.notion}`;
+    const detail = `${pct} %` + (l.refaites ? `, ${l.refaites} énigme(s) refaite(s)` : '') + (l.hints ? `, ${l.hints} coup(s) de pouce` : '');
+    if (pct < 60 || l.ratees > 0) {
+      priorite.push({ titre, detail, conseil: L.conseil });
+    } else if (pct < 90 || l.refaites > 0 || l.hints >= 2) {
+      consolider.push({ titre, detail, conseil: L.conseil });
+    } else {
+      acquis.push(titre);
+    }
+  });
+
+  let html = `<h3>Mes conseils de révision</h3>`;
+  priorite.forEach(n => {
+    html += `<div class="c-niveau c-priorite"><b class="c-etiquette">À revoir en priorité</b><b>${n.titre}</b> (${n.detail})<br>${n.conseil}</div>`;
+  });
+  consolider.forEach(n => {
+    html += `<div class="c-niveau c-consolider"><b class="c-etiquette">À consolider</b><b>${n.titre}</b> (${n.detail})<br>${n.conseil}</div>`;
+  });
+  if (acquis.length) {
+    html += `<div class="c-niveau c-acquis"><b class="c-etiquette">Acquis</b>${acquis.join(' · ')}</div>`;
+  }
+
+  // conseils généraux
+  const generaux = [];
+  if (b.pctFirst < 70) {
+    generaux.push("Beaucoup de réponses ont été trouvées au 2<sup>e</sup> ou 3<sup>e</sup> essai : lis tout l'énoncé, note les données avec leurs unités, puis écris la formule littérale avant de remplacer par les nombres.");
+  }
+  if (b.hints >= 6) {
+    generaux.push(`Tu as utilisé ${b.hints} coups de pouce : refais les exemples des rappels de cours en cachant la correction, pour t'entraîner sans aide.`);
+  }
+  if (b.ans >= ANS_MAX) {
+    generaux.push("Ton voyage a dépassé 20 ans : relis les rappels de cours avant de rejouer, tu iras plus vite.");
+  }
+  if (!priorite.length && !consolider.length) {
+    generaux.push("Excellent voyage ! Pour aller plus loin, rejoue en visant 100 % de réussite du premier coup, sans coup de pouce, et en moins de 15 ans.");
+  } else {
+    generaux.push(`Commence par ${priorite.length ? 'les parties « à revoir en priorité »' : 'les parties « à consolider »'}, puis rejoue au jeu : les énigmes changent à chaque partie.`);
+  }
+  html += `<ul>${generaux.map(g => `<li>${g}</li>`).join('')}</ul>`;
+  return html;
 }
 
 function construireCarnet(eleve) {
@@ -3718,7 +3894,7 @@ function construireCarnet(eleve) {
       <b>${esc(eleve.prenom)} ${esc(eleve.initiale)}.</b> · Classe : <b>${esc(eleve.classe)}</b> · ${date}
     </div>
 
-    <div class="pdf-bloc">
+    <div class="pdf-bloc c-resultats">
       <h2>Mon voyage</h2>
       <p class="c-verdict">${verdict}</p>
       <div class="resgrid">
@@ -3733,7 +3909,11 @@ function construireCarnet(eleve) {
       </table>
     </div>
 
-    <h2>Rappels de cours</h2>
+    <div class="pdf-bloc c-conseils">
+      ${conseilsRevision()}
+    </div>
+
+    <h2 class="c-nouvelle-page">Rappels de cours</h2>
     <div class="cours">`;
 
   // I à VIII : un rappel de cours par épreuve
@@ -3744,19 +3924,22 @@ function construireCarnet(eleve) {
         ? `<h3><span class="c-num">${ROMAINS[i]}</span>${L.notion}</h3>
            <p class="c-escale">Escale ${i + 1} : ${L.nom} — ${L.titre}</p>`
         : '';
-      html += `<div class="pdf-bloc">${entete}${bloc}</div>`;
+      const saut = k === 0 && L.pdfNouvellePage ? ' c-nouvelle-page' : '';
+      html += `<div class="pdf-bloc${saut}">${entete}${bloc}</div>`;
     });
   });
 
   // IX : mémo des formules (contenu du parchemin d'Athéna)
   const memo = $('#memo').cloneNode(true);
   memo.querySelectorAll('h3, button').forEach(x => x.remove());
+  [...memo.children].forEach((morceau, k) => {
+    const entete = k === 0
+      ? `<h3><span class="c-num">${ROMAINS[LEVELS.length]}</span>Mémo des formules</h3>
+         <p class="c-escale">Le parchemin d'Athéna, à garder sous la main</p>`
+      : '';
+    html += `<div class="pdf-bloc">${entete}${morceau.outerHTML}</div>`;
+  });
   html += `
-      <div class="pdf-bloc">
-        <h3><span class="c-num">${ROMAINS[LEVELS.length]}</span>Mémo des formules</h3>
-        <p class="c-escale">Le parchemin d'Athéna, à garder sous la main</p>
-        ${memo.innerHTML}
-      </div>
     </div>`;
 
   const el = document.createElement('div');
@@ -3810,7 +3993,9 @@ async function telechargerCarnet(eleve) {
   dbg('Création du carnet de bord pour', eleve);
   $('#pdfFb').innerHTML = '<div class="hint">📄 Préparation de ton carnet de bord (PDF)… patiente quelques secondes.</div>';
   const el = construireCarnet(eleve);
+  const defilement = window.scrollY; // le PDF doit commencer en haut de la page 1
   try {
+    await svgEnImages(el);
     await chargerHtml2pdf();
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
@@ -3819,14 +4004,17 @@ async function telechargerCarnet(eleve) {
       margin: [12, 10, 12, 10],
       filename: nomFichier(eleve),
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, backgroundColor: '#f4e7c9', useCORS: true },
+      html2canvas: { scale: 2, backgroundColor: '#f4e7c9', useCORS: true, scrollX: 0, scrollY: 0 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: { mode: ['avoid-all', 'css'] }
     };
+    window.scrollTo(0, 0);
     await html2pdf().set(options).from(el).toPdf().get('pdf').then(pdf => decorerPages(pdf, eleve)).save();
+    window.scrollTo(0, defilement);
     dbg('Carnet téléchargé :', options.filename);
     $('#pdfFb').innerHTML = `<div class="fb ok">✓ Ton carnet de bord a été téléchargé (${esc(options.filename)}). Regarde dans tes téléchargements.</div>`;
   } catch (err) {
+    window.scrollTo(0, defilement);
     console.error('[ODYSSÉE] Échec du PDF :', err);
     $('#pdfFb').innerHTML = `
       <div class="fb ko">
@@ -3835,6 +4023,43 @@ async function telechargerCarnet(eleve) {
       </div>`;
     $('#bImprimer').onclick = () => imprimerCarnet(construireCarnet(eleve));
   }
+}
+
+// remplace les dessins SVG (échelle de teinte, courbes) par des images PNG,
+// pour qu'ils apparaissent à coup sûr dans le PDF
+async function svgEnImages(el) {
+  const svgs = [...el.querySelectorAll('svg')];
+  for (const svg of svgs) {
+    const vb = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+    const w = vb[2];
+    const hauteur = vb[3];
+    const copie = svg.cloneNode(true);
+    copie.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    copie.setAttribute('width', w);
+    copie.setAttribute('height', hauteur);
+    copie.removeAttribute('style');
+    const src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(copie));
+    const image = new Image();
+    await new Promise((ok, echec) => {
+      image.onload = ok;
+      image.onerror = () => echec(new Error('image impossible à convertir'));
+      image.src = src;
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = w * 2;
+    canvas.height = hauteur * 2;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fffef8';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    const png = document.createElement('img');
+    png.src = canvas.toDataURL('image/png');
+    png.className = 'c-image';
+    png.alt = svg.getAttribute('aria-label') || '';
+    png.style.width = Math.min(w, 380) + 'px';
+    svg.replaceWith(png);
+  }
+  dbg(svgs.length, 'dessin(s) converti(s) en image pour le PDF');
 }
 
 // infos de l'élève lues dans le formulaire
