@@ -1187,6 +1187,9 @@ form.envoi input {
         <li>Le premier coup de pouce d'Athéna coûte 10 points, le second 30 points de plus (40 en tout).</li>
         <li>Le bouton <b>📖 Rappel de cours</b> te réexplique la notion de l'escale à tout moment.</li>
         <li>Ta progression est sauvegardée sur cet appareil.</li>
+        <li><b>Ton activité est enregistrée</b> : le temps passé sur chaque énigme, les sorties de la page
+            (changement d'onglet ou d'application) et les copies de texte. Ces informations sont envoyées
+            à ton professeur avec tes résultats. Reste sur la page et réponds seul·e.</li>
       </ul>
 
       <p class="centre">
@@ -1421,6 +1424,7 @@ form.envoi input {
     <p class="centre" id="resVerdict"></p>
 
     <div class="resgrid" id="resGrid"></div>
+    <p id="resActivite" style="font-size:.9rem; color:var(--encre2)"></p>
     <div style="overflow-x:auto">
       <table class="tableau" id="resTable" style="width:100%"></table>
     </div>
@@ -1503,7 +1507,7 @@ const VERSIONS_MAX = 3;               // nombre de versions d'une même énigme
 const POINTS = { 1: 100, 2: 60, 3: 30 }; // points selon la version réussie
 const COUT_INDICE = [10, 30];         // 1er coup de pouce −10, 2e coup de pouce −30 (total −40)
 const ENIGMES_MAX = 4;                // nombre d'énigmes tirées par épreuve (sauf si l'épreuve a son propre « nb »)
-const DEBUG = false;                   // false = plus de messages dans la console
+const DEBUG = true;                   // false = plus de messages dans la console
 
 // Messages de débogage (console du navigateur : F12 > Console)
 function dbg(...args) {
@@ -2945,6 +2949,7 @@ function newState() {
     pending: { from: 0, to: LV_NODE[0] }, // navigation à faire
     finalOk: false,
     sent: false,
+    suivi: suiviVide(),          // activité de l'élève (voir « SUIVI DE L'ACTIVITÉ »)
     lettres: melangerLettres(), // lettre gagnée à chaque épreuve (dans le désordre)
     lv: LEVELS.map((L, i) => ({
       status: i === 0 ? 'open' : 'locked', // locked / open / done
@@ -3306,6 +3311,10 @@ function openLevel(i) {
   $('#lvRecit').innerHTML = L.recit +
     ` <button class="btn ghost" style="font-size:.8rem;padding:.2rem .5rem" onclick="speak(LEVELS[${i}].recit)" aria-label="Écouter le récit">🔊</button>`;
   show('sLevel');
+  const enCours = curQ();
+  if (enCours && !enCours.res) {
+    enCours.debut = Date.now();
+  }
   renderQ();
 }
 
@@ -3413,6 +3422,10 @@ function renderQ() {
     </div>
     <div id="hints"></div>
     <div id="fb" aria-live="polite"></div>`;
+
+  if (!q.res && !q.debut) {
+    q.debut = Date.now();      // début du chronomètre de cette énigme
+  }
 
   $('#bVal').onclick = valider;
   $('#bHint').onclick = indice;
@@ -3523,6 +3536,8 @@ function valider() {
     $('#fb').innerHTML = `<div class="fb ko">${r.vide}</div>`;
     return;
   }
+
+  noterReponse(q);
 
   if (r.ok) {
     // points selon la version, moins le coût des coups de pouce (minimum 10)
@@ -3767,6 +3782,8 @@ function showRes() {
   $('#resTable').innerHTML = `
     <tr><th>Épreuve</th><th>Points</th><th>Réussite</th><th>1<sup>er</sup> coup</th><th>Refaites</th><th>Années</th><th>Temps réel</th></tr>
     ${lignes}`;
+
+  $('#resActivite').textContent = 'Activité enregistrée : ' + resumeActivite() + '.';
 
   if (S.sent) {
     $('#envoiFb').innerHTML = '<div class="fb ok">✓ Tes résultats ont déjà été envoyés au professeur.</div>';
@@ -4056,6 +4073,136 @@ $('#bCarnet').onclick = () => {
 };
 
 // =====================================================================
+//  SUIVI DE L'ACTIVITÉ (indices d'une aide extérieure, IA ou autre)
+// ---------------------------------------------------------------------
+//  Ce ne sont pas des preuves : ce sont des indices à croiser avec ce que
+//  le professeur connaît de l'élève. Les élèves en sont informés à l'accueil.
+//   - sorties de la page de plus de 2 s (changement d'onglet ou d'application) ;
+//   - énigmes validées après une sortie, alors qu'elles étaient affichées ;
+//   - copies de texte ;
+//   - temps de réponse par énigme (médiane) et réponses en moins de 3 s.
+//  Attention : certains outils d'aide (dictée, loupe, lecteur d'écran externe)
+//  peuvent provoquer des sorties de page sans intention de tricher.
+//
+//  Mode test du professeur : ajouter #prof à la fin de l'adresse.
+//  Les résultats envoyés commencent alors par [TEST PROF] dans le fichier.
+// =====================================================================
+const SEUIL_RAPIDE_MS = 3000;    // réponse plus rapide = « très rapide »
+const SORTIE_MINIMUM_MS = 2000;  // une absence plus courte n'est pas comptée
+const TEST_PROF = /(^|[#?&])(prof|debug)\b/.test(location.hash + location.search);
+
+function suiviVide() {
+  return { sorties: 0, tempsDehorsMs: 0, copies: 0, temps: [], rapides: 0, apresSortie: 0 };
+}
+
+// le suivi ne compte que pendant la partie (avant l'arrivée à Ithaque)
+function suiviActif() {
+  if (!S || S.tEnd) {
+    return false;
+  }
+  if (!S.suivi) {
+    S.suivi = suiviVide();   // partie commencée avec une ancienne version du jeu
+  }
+  return true;
+}
+
+// énigme affichée à l'écran en ce moment (ou null)
+function enigmeAffichee() {
+  if (!S || S.cur === null || !$('#sLevel').classList.contains('on')) {
+    return null;
+  }
+  const q = curQ();
+  return q && !q.res ? q : null;
+}
+
+function noterReponse(q) {
+  if (!suiviActif()) {
+    return;
+  }
+  const duree = Date.now() - (q.debut || Date.now());
+  S.suivi.temps.push(Math.round(duree / 100) / 10);   // en secondes, au dixième
+  if (duree < SEUIL_RAPIDE_MS) {
+    S.suivi.rapides++;
+  }
+  if (q.sortiePendant) {
+    S.suivi.apresSortie++;
+  }
+}
+
+// sorties de la page : on note le départ, on compte au retour si l'absence a duré plus de 2 s
+let debutSortie = null;
+function quitteLaPage() {
+  if (debutSortie === null) {
+    debutSortie = Date.now();
+  }
+}
+function revientSurLaPage() {
+  if (debutSortie === null) {
+    return;
+  }
+  const absence = Date.now() - debutSortie;
+  debutSortie = null;
+  if (!suiviActif() || absence < SORTIE_MINIMUM_MS) {
+    return;
+  }
+  S.suivi.sorties++;
+  S.suivi.tempsDehorsMs += absence;
+  const q = enigmeAffichee();
+  if (q) {
+    q.sortiePendant = true;
+  }
+  dbg('Sortie de la page :', duree(absence));
+  save();
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    quitteLaPage();
+  } else {
+    revientSurLaPage();
+  }
+});
+window.addEventListener('blur', quitteLaPage);
+window.addEventListener('focus', revientSurLaPage);
+document.addEventListener('copy', () => {
+  if (suiviActif()) {
+    S.suivi.copies++;
+    dbg('Copie de texte');
+    save();
+  }
+});
+
+function mediane(valeurs) {
+  if (!valeurs.length) {
+    return 0;
+  }
+  const tri = [...valeurs].sort((a, b) => a - b);
+  const m = Math.floor(tri.length / 2);
+  return tri.length % 2 ? tri[m] : Math.round((tri[m - 1] + tri[m]) * 5) / 10;
+}
+
+// objet envoyé au worker (champ « activite »)
+function donneesActivite() {
+  const a = (S && S.suivi) || suiviVide();
+  return {
+    sorties: a.sorties,
+    tempsHors: duree(a.tempsDehorsMs),
+    copies: a.copies,
+    tempsMedian: String(mediane(a.temps)).replace('.', ','),
+    rapides: a.rapides,
+    apresSortie: a.apresSortie,
+    reponses: a.temps.length
+  };
+}
+
+// texte affiché à l'élève dans son bilan
+function resumeActivite() {
+  const a = donneesActivite();
+  return `sorties de page : ${a.sorties} (${a.tempsHors} hors de la page) · copies : ${a.copies} · ` +
+         `temps médian par énigme : ${a.tempsMedian} s · réponses en moins de 3 s : ${a.rapides}/${a.reponses} · ` +
+         `réponses données après une sortie : ${a.apresSortie}/${a.reponses}`;
+}
+
+// =====================================================================
 //  ENVOI DES RÉSULTATS AU WORKER
 // =====================================================================
 $('#fEnvoi').onsubmit = async e => {
@@ -4082,6 +4229,8 @@ $('#fEnvoi').onsubmit = async e => {
     refaites: b.refaites,
     ratees: b.ratees,
     indices: b.hints,
+    activite: donneesActivite(),   // colonne « Activité » du fichier de résultats
+    test: TEST_PROF,               // true → la ligne commence par [TEST PROF]
     niveaux: LEVELS.map((L, i) => ({
       nom: `${i + 1}-${L.nom}`,
       pts: S.lv[i].pts,
